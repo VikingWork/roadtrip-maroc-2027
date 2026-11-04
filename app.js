@@ -32,11 +32,19 @@ L.control.layers(fonds, {'Stations':calques.st, 'Photos de la route':calques.ph,
 map.setView([31.8, -6.5], 6);
 
 const ico = (html, cls='pin', taille=[24,24]) => L.divIcon({html, className:cls, iconSize:taille, iconAnchor:[taille[0]/2, taille[1]/2]});
+const badge = (sym, coul, t=34) => L.divIcon({className:'poi', iconSize:[t, t+8], iconAnchor:[t/2, t+8], popupAnchor:[0, -t],
+  html:`<div class="poi-b" style="background:${coul};width:${t}px;height:${t}px;font-size:${Math.round(t*.5)}px">${sym}</div><div class="poi-q" style="border-top-color:${coul}"></div>`});
 const ICO = {
   st: ico('⛽', 'pin-st', [22,22]),
   ph: ico('', 'pin-ph', [14,14]),
-  vis: ico('📸'), resto: ico('🍽️'), nuit: ico('🛏️'), dep: ico('🏁'),
+  vis: badge('📷', '#2f6fd0'), resto: badge('🍴', '#e07b00'), nuit: badge('🛏', '#7b2fa8', 38), dep: badge('🏁', '#1d1a17', 30),
 };
+// Légende toujours visible en bas à gauche
+const legende = L.control({position:'bottomleft'});
+legende.onAdd = () => { const d = L.DomUtil.create('div', 'legende-carte');
+  d.innerHTML = '<span><i style="background:#c4572e"></i>Tracé</span><span><i class="r" style="background:#2f6fd0"></i>Visite</span><span><i class="r" style="background:#e07b00"></i>Resto</span><span><i class="r" style="background:#7b2fa8"></i>Nuit</span><span><i class="r" style="background:#fff;border:2px solid #4f7d4a"></i>Essence</span><span><i class="r p"></i>Photo route</span>';
+  return d; };
+legende.addTo(map);
 
 /* ---------- État ---------- */
 let J = null, ongletActif = 'route', galerieCourante = [], idxPhoto = 0;
@@ -76,6 +84,22 @@ function lienGPS(pts, depuisIci=false){
   if (!depuisIci) u += `&origin=${f(pts[0])}`;
   if (wps) u += `&waypoints=${encodeURIComponent(wps)}`;
   return u;
+}
+/* GPS fidèle au tracé : on découpe la journée en tronçons de ~45 km, chacun avec 3 points de passage
+   pris SUR le tracé (Google Maps sur téléphone n'accepte que 3 étapes par lien). */
+function hav(a, b){ const r = Math.PI/180, x = Math.sin((b[0]-a[0])*r/2)**2 + Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin((b[1]-a[1])*r/2)**2; return 12742*Math.asin(Math.sqrt(x)); }
+function troncons(){
+  const t = J.trace, cum = [0];
+  for (let i = 1; i < t.length; i++) cum.push(cum[i-1] + hav(t[i-1], t[i]));
+  const tot = cum[cum.length-1], n = Math.max(1, Math.round(tot / 45)), L_ = tot / n;
+  const pt = km => t[cum.findIndex(c => c >= km)] || t[t.length-1];
+  const f = p => `${p[0].toFixed(5)},${p[1].toFixed(5)}`;
+  return Array.from({length:n}, (_, k) => {
+    const a = k*L_, b = (k+1)*L_;
+    const wps = [1,2,3].map(q => f(pt(a + q*(b-a)/4))).join('|');
+    const base = `https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${f(pt(b))}&waypoints=${encodeURIComponent(wps)}`;
+    return {a:Math.round(a), b:Math.round(b), lien: base + `&origin=${f(pt(a))}`, ici: base};
+  });
 }
 const lienPoint = (la, lo) => `https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${la},${lo}`;
 
@@ -122,10 +146,12 @@ function entete(){
       <div class="chiffre"><b>${J.depart} → ${J.arrivee}</b><small>départ / arrivée</small></div>
       ${amax!==null?`<div class="chiffre"><b>${amin}–${amax} m</b><small>altitude</small></div>`:''}
     </div>
-    <div class="actions">
-      <a class="btn" href="${lienGPS(J.points_route)}" target="_blank" rel="noopener">🧭 GPS de la journée</a>
-      <a class="btn sec" href="${lienGPS(J.points_route, true)}" target="_blank" rel="noopener">📍 Depuis ma position</a>
-      <button class="btn clair" id="btn-gpx">⬇ GPX</button>
+    <div class="segments">${troncons().map((s, i) => `
+      <div class="actions" style="margin:0">
+        <a class="btn" href="${s.lien}" target="_blank" rel="noopener">🧭 Tronçon ${i+1} · km ${s.a} → ${s.b}</a>
+        <a class="btn sec" href="${s.ici}" target="_blank" rel="noopener">📍 Depuis ma position</a></div>`).join('')}
+      <div class="actions" style="margin:0"><button class="btn clair" id="btn-gpx">⬇ GPX (tracé exact, pour Calimoto / OsmAnd / GPS moto)</button></div>
+      <div class="credit">Chaque tronçon force Google Maps à passer par 3 points pris sur notre tracé (un tous les ~11 km), ce qui l'empêche de partir sur une autre route. Pour suivre le tracé au mètre près : le GPX. Lancer le tronçon suivant à la fin du précédent.</div>
     </div>`;
   $('#btn-gpx').onclick = gpx;
 }
@@ -156,12 +182,36 @@ function vRoute(){
   const ph = J.photos_route.map((p, i) => `<figure id="ph${i}" data-g="route" data-i="${i}"><img loading="lazy" src="${p.src}" alt="Route km ${p.km}"><figcaption>km ${p.km} · ${p.annee}</figcaption></figure>`).join('');
   const yt = (J.videos_route || []).map(carteYT).join('');
   return `<div class="carte"><p>${esc(J.resume)}</p></div>
+    ${blocMeteo()}
     <div class="carte profil"><h3>Profil de la route</h3>${profil()}<div class="credit">Altitude SRTM · km depuis le départ · ⛽ = stations</div></div>
     ${yt ? `<div class="carte"><h3>La route en vidéo</h3>${yt}</div>` : ''}
     <div class="carte"><h3>À quoi ressemble la route</h3>
       <div class="meta">Vraies photos prises sur ce tracé (Mapillary), à peu près tous les 4 km. Touchez la ligne sur la carte pour sauter à la photo la plus proche.</div>
       <div class="photos-route" style="margin-top:10px">${ph || '<i>Aucune photo trouvée sur ce tronçon.</i>'}</div>
       <div class="credit" style="margin-top:6px">Photos © contributeurs Mapillary, licence CC BY-SA 4.0 (auteur dans la visionneuse).</div></div>`;
+}
+/* Météo : normale de saison (10 ans d'archives) + vraie prévision quand le jour est à moins de 15 jours */
+const DATE_ISO = {j1:'2027-05-05', j2:'2027-05-06', j3:'2027-05-07', j4:'2027-05-08', j5:'2027-05-09', j6:'2027-05-10',
+  j7:'2027-05-11', j8:'2027-05-12', j9:'2027-05-13', j10:'2027-05-14', j11:'2027-05-15'};
+function blocMeteo(){
+  const m = J.meteo; if (!m) return '';
+  const case_ = x => !x || x.tmax === undefined ? '' : `<div><small class="credit">${esc(x.nom)}</small><br>
+    <b>${x.tmin}° / ${x.tmax}°</b><br><span class="credit">extrêmes ${x.tmin_record}° / ${x.tmax_record}° · pluie ${x.risque_pluie} % des jours · vent max moyen ${x.vent} km/h</span></div>`;
+  setTimeout(prevision, 0);
+  return `<div class="carte"><h3>🌤 Météo</h3><div class="meta">Normale de saison : ${esc(m.periode)}.</div>
+    <div class="meteo">${case_(m.arrivee)}${case_(m.sommet)}</div><div id="prevision" class="credit" style="margin-top:6px"></div></div>`;
+}
+async function prevision(){
+  const el = document.getElementById('prevision'); if (!el) return;
+  const jour = DATE_ISO[J.id], ecart = (new Date(jour) - new Date()) / 864e5;
+  if (ecart > 15) { el.textContent = `Vraie prévision affichée ici automatiquement à partir du ${new Date(new Date(jour) - 15*864e5).toLocaleDateString('fr-FR')}.`; return; }
+  if (ecart < -1) return;
+  try {
+    const a = J.meteo.arrivee;
+    const r = await (await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${a.lat}&longitude=${a.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&timezone=Africa%2FCasablanca&start_date=${jour}&end_date=${jour}`)).json();
+    const d = r.daily;
+    el.innerHTML = `<b style="font-size:15px">Prévision pour ce jour-là : ${Math.round(d.temperature_2m_min[0])}° / ${Math.round(d.temperature_2m_max[0])}°, risque de pluie ${d.precipitation_probability_max[0]} %, vent jusqu'à ${Math.round(d.wind_speed_10m_max[0])} km/h</b>`;
+  } catch (e) { el.textContent = 'Prévision indisponible (pas de réseau).'; }
 }
 function profil(){
   const a = J.altitude; if (a.length < 2) return '<i>Profil indisponible</i>';
