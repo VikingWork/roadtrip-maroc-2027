@@ -1,0 +1,279 @@
+/* Road trip Maroc mai 2027 — appli carte (Leaflet) */
+const PLAN = [
+  {id:'j1', num:1, date:'mer 5', titre:'Tanger Med → Chefchaouen'},
+  {id:'j2', num:2, date:'jeu 6', titre:'Chefchaouen → Fès'},
+  {id:'j3', num:3, date:'ven 7', titre:'Volubilis (boucle)'},
+  {id:'j4', num:4, date:'sam 8', titre:'Fès → Midelt'},
+  {id:'j5', num:5, date:'dim 9', titre:'Midelt → Merzouga'},
+  {id:'j6', num:6, date:'lun 10', titre:'Merzouga → Todra'},
+  {id:'j7', num:7, date:'mar 11', titre:'Todra → Dadès'},
+  {id:'j8', num:8, date:'mer 12', titre:'Dadès → Aït Ben Haddou'},
+  {id:'j9', num:9, date:'jeu 13', titre:'Aït Ben Haddou → Marrakech'},
+  {id:'j10', num:10, date:'ven 14', titre:'Marrakech'},
+  {id:'j11', num:11, date:'sam 15', titre:'Marrakech → Tanger Med'},
+];
+const PRETS = ['j1','j7'];            // jours déjà construits (prototype)
+const AUTONOMIE = 370, TROU_ALERTE = 80; // km
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- Carte ---------- */
+const map = L.map('map', {zoomControl:true, attributionControl:true});
+const fonds = {
+  'Plan': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}),
+  'Relief': L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {maxZoom:17, attribution:'© OpenTopoMap, © OpenStreetMap'}),
+  'Satellite': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom:19, attribution:'© Esri, Maxar'}),
+};
+fonds['Relief'].addTo(map);
+const calques = {trace:L.layerGroup().addTo(map), st:L.layerGroup().addTo(map), ph:L.layerGroup().addTo(map),
+                 vis:L.layerGroup().addTo(map), resto:L.layerGroup().addTo(map), nuit:L.layerGroup().addTo(map)};
+L.control.layers(fonds, {'Stations':calques.st, 'Photos de la route':calques.ph, 'Visites':calques.vis,
+  'Restos':calques.resto, 'Nuit':calques.nuit}, {collapsed:true}).addTo(map);
+map.setView([31.8, -6.5], 6);
+
+const ico = (html, cls='pin', taille=[24,24]) => L.divIcon({html, className:cls, iconSize:taille, iconAnchor:[taille[0]/2, taille[1]/2]});
+const ICO = {
+  st: ico('⛽', 'pin-st', [22,22]),
+  ph: ico('', 'pin-ph', [14,14]),
+  vis: ico('📸'), resto: ico('🍽️'), nuit: ico('🛏️'), dep: ico('🏁'),
+};
+
+/* ---------- État ---------- */
+let J = null, ongletActif = 'route', galerieCourante = [], idxPhoto = 0;
+const cache = {};
+
+function barreJours(){
+  $('#jours').innerHTML = PLAN.map(p => {
+    const pret = PRETS.includes(p.id);
+    return `<button data-id="${p.id}" class="${pret?'':'vide'}" title="${esc(p.titre)}">J${p.num} · ${esc(p.date)}</button>`;
+  }).join('');
+  $('#jours').onclick = e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (!PRETS.includes(b.dataset.id)) { infoBientot(b.dataset.id); return; }
+    location.hash = b.dataset.id;
+  };
+}
+function infoBientot(id){
+  const p = PLAN.find(x => x.id === id);
+  $('#entete-jour').innerHTML = `<div class="date">Jour ${p.num} · ${esc(p.date)} mai</div><h1>${esc(p.titre)}</h1>`;
+  $('#onglets').innerHTML = '';
+  $('#contenu').innerHTML = `<div class="vide-jour">Cette journée n'est pas encore construite : le prototype ne contient que les jours 1 et 7. Le reste arrive une fois le rendu validé.</div>`;
+}
+
+async function chargerJour(id){
+  if (!cache[id]) cache[id] = await (await fetch(`data/${id}.json`)).json();
+  J = cache[id];
+  document.querySelectorAll('#jours button').forEach(b => b.classList.toggle('actif', b.dataset.id === id));
+  document.querySelector(`#jours button[data-id="${id}"]`)?.scrollIntoView({inline:'center', block:'nearest'});
+  dessinerCarte(); entete(); onglets(); afficher(ongletActif);
+}
+
+function lienGPS(pts, depuisIci=false){
+  const f = p => `${p[1]},${p[2]}`;
+  const dest = f(pts[pts.length-1]);
+  const wps = pts.slice(1, -1).map(f).join('|');
+  let u = `https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${dest}`;
+  if (!depuisIci) u += `&origin=${f(pts[0])}`;
+  if (wps) u += `&waypoints=${encodeURIComponent(wps)}`;
+  return u;
+}
+const lienPoint = (la, lo) => `https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${la},${lo}`;
+
+/* ---------- Dessin de la carte ---------- */
+function dessinerCarte(){
+  Object.values(calques).forEach(c => c.clearLayers());
+  const t = J.trace;
+  L.polyline(t, {color:'#fff', weight:9, opacity:.9}).addTo(calques.trace);
+  const ligne = L.polyline(t, {color:'#c4572e', weight:5, opacity:.95}).addTo(calques.trace);
+  ligne.on('click', e => { ouvrirOnglet('route'); photoProche(e.latlng); });
+  const p = J.points_route;
+  L.marker([p[0][1], p[0][2]], {icon:ICO.dep}).bindPopup(`<b>Départ</b><br>${esc(p[0][0])} · ${J.depart}`).addTo(calques.trace);
+  J.stations.forEach(s => L.marker([s.lat, s.lon], {icon:ICO.st}).bindPopup(
+    `<b>${esc(s.nom)}</b><br>km ${s.km}${s.h24?' · 24h/24':''}<br><a href="${lienPoint(s.lat,s.lon)}" target="_blank">Y aller</a>`).addTo(calques.st));
+  J.photos_route.forEach((ph, i) => L.marker([ph.lat, ph.lon], {icon:ICO.ph}).on('click', () => ouvrirGalerie(J.photos_route, i)).addTo(calques.ph));
+  J.visites.forEach((v, i) => L.marker([v.lat, v.lon], {icon:ICO.vis}).on('click', () => { ouvrirOnglet('visiter'); cibler('vis'+i); }).bindTooltip(v.nom).addTo(calques.vis));
+  J.repas.restos.forEach((r, i) => L.marker([r.lat, r.lon], {icon:ICO.resto}).on('click', () => { ouvrirOnglet('manger'); cibler('resto'+i); }).bindTooltip(r.nom).addTo(calques.resto));
+  const n = J.nuit;
+  L.marker([n.lat, n.lon], {icon:ICO.nuit}).on('click', () => ouvrirOnglet('dormir')).bindTooltip(n.nom).addTo(calques.nuit);
+  map.fitBounds(ligne.getBounds(), {padding:[24,24]});
+}
+function photoProche(ll){
+  if (!J.photos_route.length) return;
+  let best = 0, d = 1e9;
+  J.photos_route.forEach((p, i) => { const x = (p.lat-ll.lat)**2 + (p.lon-ll.lng)**2; if (x < d) { d = x; best = i; } });
+  setTimeout(() => cibler('ph'+best), 50);
+}
+function cibler(id){
+  const el = document.getElementById(id); if (!el) return;
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+  el.animate([{outline:'3px solid #c4572e'}, {outline:'3px solid transparent'}], {duration:1600});
+}
+
+/* ---------- En-tête du jour ---------- */
+function entete(){
+  const alt = J.altitude.map(a => a[1]);
+  const amax = alt.length ? Math.max(...alt) : null, amin = alt.length ? Math.min(...alt) : null;
+  $('#entete-jour').innerHTML = `
+    <div class="date">Jour ${J.num} · ${esc(J.date)}</div>
+    <h1>${esc(J.titre)}</h1>
+    <div class="chiffres">
+      <div class="chiffre"><b>${J.km_osrm} km</b><small>distance</small></div>
+      <div class="chiffre"><b>${String(J.h_osrm).replace('.',',')} h</b><small>conduite pure</small></div>
+      <div class="chiffre"><b>${J.depart} → ${J.arrivee}</b><small>départ / arrivée</small></div>
+      ${amax!==null?`<div class="chiffre"><b>${amin}–${amax} m</b><small>altitude</small></div>`:''}
+    </div>
+    <div class="actions">
+      <a class="btn" href="${lienGPS(J.points_route)}" target="_blank" rel="noopener">🧭 GPS de la journée</a>
+      <a class="btn sec" href="${lienGPS(J.points_route, true)}" target="_blank" rel="noopener">📍 Depuis ma position</a>
+      <button class="btn clair" id="btn-gpx">⬇ GPX</button>
+    </div>`;
+  $('#btn-gpx').onclick = gpx;
+}
+function gpx(){
+  const pts = J.trace.map(p => `<trkpt lat="${p[0]}" lon="${p[1]}"></trkpt>`).join('');
+  const wpts = J.stations.map(s => `<wpt lat="${s.lat}" lon="${s.lon}"><name>${esc(s.nom)} km${s.km}</name><sym>Gas Station</sym></wpt>`).join('')
+    + `<wpt lat="${J.nuit.lat}" lon="${J.nuit.lon}"><name>${esc(J.nuit.nom)}</name><sym>Lodging</sym></wpt>`;
+  const x = `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="roadtrip-maroc" xmlns="http://www.topografix.com/GPX/1/1">${wpts}<trk><name>J${J.num} ${esc(J.titre)}</name><trkseg>${pts}</trkseg></trk></gpx>`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([x], {type:'application/gpx+xml'}));
+  a.download = `Maroc-J${J.num}.gpx`; document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ---------- Onglets ---------- */
+const ONGLETS = [['route','Route'],['essence','Essence'],['manger','Manger'],['visiter','Visiter'],['dormir','Dormir'],['pieges','Pièges']];
+function onglets(){
+  $('#onglets').innerHTML = ONGLETS.map(([k,l]) => `<button data-k="${k}" class="${k===ongletActif?'actif':''}">${l}</button>`).join('');
+  $('#onglets').onclick = e => { const b = e.target.closest('button'); if (b) ouvrirOnglet(b.dataset.k); };
+}
+function ouvrirOnglet(k){
+  ongletActif = k;
+  document.querySelectorAll('#onglets button').forEach(b => b.classList.toggle('actif', b.dataset.k === k));
+  afficher(k);
+}
+function afficher(k){ $('#contenu').innerHTML = ({route:vRoute, essence:vEssence, manger:vManger, visiter:vVisiter, dormir:vDormir, pieges:vPieges})[k](); brancher(); }
+
+function vRoute(){
+  const ph = J.photos_route.map((p, i) => `<figure id="ph${i}" data-g="route" data-i="${i}"><img loading="lazy" src="${p.src}" alt="Route km ${p.km}"><figcaption>km ${p.km} · ${p.annee}</figcaption></figure>`).join('');
+  const yt = (J.videos_route || []).map(carteYT).join('');
+  return `<div class="carte"><p>${esc(J.resume)}</p></div>
+    <div class="carte profil"><h3>Profil de la route</h3>${profil()}<div class="credit">Altitude SRTM · km depuis le départ · ⛽ = stations</div></div>
+    ${yt ? `<div class="carte"><h3>La route en vidéo</h3>${yt}</div>` : ''}
+    <div class="carte"><h3>À quoi ressemble la route</h3>
+      <div class="meta">Vraies photos prises sur ce tracé (Mapillary), à peu près tous les 4 km. Touchez la ligne sur la carte pour sauter à la photo la plus proche.</div>
+      <div class="photos-route" style="margin-top:10px">${ph || '<i>Aucune photo trouvée sur ce tronçon.</i>'}</div>
+      <div class="credit" style="margin-top:6px">Photos © contributeurs Mapillary, licence CC BY-SA 4.0 (auteur dans la visionneuse).</div></div>`;
+}
+function profil(){
+  const a = J.altitude; if (a.length < 2) return '<i>Profil indisponible</i>';
+  const W = 600, H = 140, P = 22, kmax = a[a.length-1][0];
+  const zs = a.map(x => x[1]), zmin = Math.min(...zs) - 50, zmax = Math.max(...zs) + 50;
+  const X = k => P + (k / kmax) * (W - P - 6), Y = z => H - 18 - (z - zmin) / (zmax - zmin) * (H - 30);
+  const d = a.map((x, i) => `${i ? 'L' : 'M'}${X(x[0]).toFixed(1)},${Y(x[1]).toFixed(1)}`).join('');
+  const st = J.stations.map(s => `<text x="${X(s.km)}" y="${H-4}" font-size="10" text-anchor="middle">⛽</text>`).join('');
+  const graduations = [0, .25, .5, .75, 1].map(f => `<text x="${X(kmax*f)}" y="10" font-size="9" fill="#7a6e62" text-anchor="${f===1?'end':f===0?'start':'middle'}">${Math.round(kmax*f)} km</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="Profil altimétrique">
+    <path d="${d}L${X(kmax)},${H-18}L${X(0)},${H-18}Z" fill="#e6d6b8"/><path d="${d}" fill="none" stroke="#c4572e" stroke-width="2"/>
+    <text x="2" y="${Y(Math.max(...zs))+4}" font-size="10" fill="#2b241e">${Math.max(...zs)} m</text>
+    <text x="2" y="${Y(Math.min(...zs))}" font-size="10" fill="#7a6e62">${Math.min(...zs)} m</text>${st}${graduations}</svg>`;
+}
+
+function vEssence(){
+  const s = J.stations, total = J.km_osrm;
+  let html = '', prec = 0, maxTrou = 0;
+  s.forEach(x => {
+    const trou = x.km - prec; maxTrou = Math.max(maxTrou, trou);
+    if (trou >= 15) html += `<li class="trou ${trou >= TROU_ALERTE ? 'gros' : ''}">↕ ${Math.round(trou)} km sans station</li>`;
+    html += `<li><span class="km">km ${x.km}</span><span style="flex:1">${esc(x.nom)} ${x.h24 ? '<span class="badge ok">24h/24</span>' : ''}</span><a class="btn clair" style="padding:6px 10px" href="${lienPoint(x.lat,x.lon)}" target="_blank">Y aller</a></li>`;
+    prec = x.km;
+  });
+  const fin = total - prec; maxTrou = Math.max(maxTrou, fin);
+  if (fin >= 15) html += `<li class="trou ${fin >= TROU_ALERTE ? 'gros' : ''}">↕ ${Math.round(fin)} km jusqu'à l'arrivée</li>`;
+  const verdict = maxTrou < AUTONOMIE * 0.5
+    ? `<div class="alerte" style="border-color:var(--vert);background:#eef6ec">✅ Aucun souci : le plus long trou fait ${Math.round(maxTrou)} km pour ${AUTONOMIE} km d'autonomie. Un plein le matin suffit.</div>`
+    : `<div class="alerte ko">⚠ Trou de ${Math.round(maxTrou)} km : partir avec le plein complet.</div>`;
+  return `${verdict}<div class="carte"><h3>${s.length} stations sur le tracé</h3>
+    <div class="meta">Repérées dans OpenStreetMap à moins de 600 m de la route. Au Maroc la base est incomplète : il y en a souvent plus, rarement moins. Beaucoup refusent la carte bancaire : avoir du liquide.</div>
+    <ul class="liste-st" style="margin-top:8px">${html || '<li>Aucune station repérée</li>'}</ul></div>`;
+}
+function vManger(){
+  const r = J.repas;
+  return `<div class="carte"><h3>${esc(r.titre)}</h3><p>${esc(r.commentaire)}</p></div>` + r.restos.map((x, i) => `
+    <div class="carte" id="resto${i}"><h3>🍽️ ${esc(x.nom)}</h3><div class="meta">${esc(x.note)}</div><p>${esc(x.pourquoi)}</p>
+    <a class="btn clair" href="${lienPoint(x.lat,x.lon)}" target="_blank">🧭 Y aller</a>
+    <a class="btn clair" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.nom + ' ' + J.nuit.lieu.split(',')[0])}" target="_blank">Avis Google</a>
+    ${x.approx ? '<div class="credit" style="margin-top:6px">Position approximative : le bouton « Avis Google » donne l\'adresse exacte.</div>' : ''}</div>`).join('');
+}
+function vVisiter(){
+  return J.visites.map((v, i) => `
+    <div class="carte" id="vis${i}"><h3>📸 ${esc(v.nom)}</h3><p>${esc(v.texte)}</p>
+      <div class="galerie">${(v.photos||[]).map((p, k) => `<img loading="lazy" src="${p.src}" data-g="vis${i}" data-i="${k}" alt="">`).join('')}</div>
+      ${(v.videos||[]).map(carteYT).join('')}
+      <div class="actions"><a class="btn clair" href="${lienPoint(v.lat,v.lon)}" target="_blank">🧭 Y aller</a></div></div>`).join('');
+}
+function vDormir(){
+  const n = J.nuit;
+  return `<div class="carte"><h3>🛏️ ${esc(n.nom)}</h3><div class="meta">${esc(n.lieu)} · note Booking ${esc(n.note)}</div>
+    <p><b>${esc(n.prix)}</b><br>Annulation : ${esc(n.annulation)}<br>Statut : <span class="badge warn">${esc(n.statut)}</span></p>
+    <p>${esc(n.astuce)}</p>
+    <div class="actions"><a class="btn" href="${n.booking}" target="_blank">Voir sur Booking</a>
+    <a class="btn clair" href="${lienPoint(n.lat,n.lon)}" target="_blank">🧭 Y aller</a></div></div>`;
+}
+function vPieges(){
+  return `<div class="carte"><h3>⚠ À savoir pour cette journée</h3><ul>${J.pieges.map(p => `<li style="margin:6px 0">${esc(p)}</li>`).join('')}</ul></div>`;
+}
+function carteYT(v){
+  const m = Math.floor(v.duree/60), s = String(v.duree%60).padStart(2,'0');
+  return `<div class="yt" data-yt="${v.id}"><img loading="lazy" src="https://i.ytimg.com/vi/${v.id}/hqdefault.jpg" alt=""><div class="play">▶</div><div class="dur">${m}:${s}</div></div>
+    <div class="credit">${esc(v.titre)} — ${esc(v.chaine)}${v.debut ? ` · démarre à ${Math.floor(v.debut/60)}:${String(v.debut%60).padStart(2,'0')}` : ''}</div>`;
+}
+
+/* ---------- Interactions : photos, vidéos ---------- */
+function brancher(){
+  document.querySelectorAll('#contenu [data-g]').forEach(el => el.onclick = () => {
+    const g = el.dataset.g, i = +el.dataset.i;
+    const liste = g === 'route' ? J.photos_route : J.visites[+g.slice(3)].photos;
+    ouvrirGalerie(liste, i);
+  });
+  document.querySelectorAll('#contenu .yt').forEach(el => el.onclick = () => {
+    if (el.querySelector('iframe')) return;
+    const v = [...(J.videos_route||[]), ...J.visites.flatMap(x => x.videos||[])].find(x => x.id === el.dataset.yt) || {};
+    el.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${el.dataset.yt}?autoplay=1&rel=0${v.debut ? '&start='+v.debut : ''}" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
+  });
+}
+function ouvrirGalerie(liste, i){ galerieCourante = liste; idxPhoto = i; montrerPhoto(); $('#visionneuse').classList.remove('hidden'); }
+function montrerPhoto(){
+  const p = galerieCourante[idxPhoto]; if (!p) return;
+  $('#visionneuse img').src = p.src;
+  $('#visionneuse .legende').innerHTML = `${p.km !== undefined ? `<b>km ${p.km}</b> · ` : ''}${p.annee ? p.annee + ' · ' : ''}© ${esc(p.auteur)} · ${esc(p.source)} ${esc(p.licence)} · <a href="${p.lien}" target="_blank">voir l'original</a>
+    ${p.lat ? ` · <a href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lon}" target="_blank">situer</a>` : ''}`;
+}
+$('#visionneuse .fermer').onclick = () => $('#visionneuse').classList.add('hidden');
+$('#visionneuse .prec').onclick = () => { idxPhoto = (idxPhoto - 1 + galerieCourante.length) % galerieCourante.length; montrerPhoto(); };
+$('#visionneuse .suiv').onclick = () => { idxPhoto = (idxPhoto + 1) % galerieCourante.length; montrerPhoto(); };
+document.addEventListener('keydown', e => {
+  if ($('#visionneuse').classList.contains('hidden')) return;
+  if (e.key === 'Escape') $('#visionneuse .fermer').click();
+  if (e.key === 'ArrowLeft') $('#visionneuse .prec').click();
+  if (e.key === 'ArrowRight') $('#visionneuse .suiv').click();
+});
+
+/* ---------- Urgences ---------- */
+$('#btn-urgence').onclick = () => {
+  $('#urgences').innerHTML = `<div class="boite"><h2>🆘 Urgences Maroc</h2>
+    <div class="num"><span>Police (en ville)</span><b>19</b></div>
+    <div class="num"><span>Gendarmerie royale (hors ville, routes)</span><b>177</b></div>
+    <div class="num"><span>Ambulance · pompiers</span><b>15</b></div>
+    <div class="num"><span>Depuis un portable</span><b>112</b></div>
+    <div class="carte" style="margin-top:12px"><h3>Assistance santé · carte Gold Mastercard</h3>
+      <p>Appeler le numéro <b>au dos de la carte</b> (Europ Assistance, 24h/24) <b>AVANT toute dépense</b>, sinon rien n'est remboursé. Rapatriement, frais médicaux jusqu'à 155 000 €, avance des frais d'hôpital.</p>
+      <p>Mail médical : medical@europ-assistance.fr</p></div>
+    <div class="carte"><h3>Moto</h3><p>Panne ou accident : appeler l'assistance de l'assurance moto (numéro sur la carte verte). Garder carte grise, carte verte et déclaration d'importation temporaire sur soi.</p></div>
+    <button class="btn" style="width:100%" onclick="document.getElementById('urgences').classList.add('hidden')">Fermer</button></div>`;
+  $('#urgences').classList.remove('hidden');
+};
+$('#urgences').onclick = e => { if (e.target.id === 'urgences') $('#urgences').classList.add('hidden'); };
+
+/* ---------- Démarrage ---------- */
+function route(){ const id = location.hash.slice(1); chargerJour(PRETS.includes(id) ? id : PRETS[0]).catch(err => { $('#contenu').innerHTML = '<div class="alerte ko">Impossible de charger la journée (réseau ?).</div>'; console.log(err); }); }
+barreJours(); window.addEventListener('hashchange', route); route();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});

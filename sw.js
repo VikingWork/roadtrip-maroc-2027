@@ -1,0 +1,24 @@
+// Mode hors-ligne partiel : la page, les données, les photos et les morceaux de carte déjà vus restent en mémoire.
+const V = 'maroc-v1';
+const BASE = ['./', 'index.html', 'style.css', 'app.js', 'manifest.json', 'data/j1.json', 'data/j7.json',
+  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'];
+self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(BASE)).catch(() => {})); self.skipWaiting(); });
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V && k !== 'tuiles').map(k => caches.delete(k)))));
+  self.clients.claim();
+});
+self.addEventListener('fetch', e => {
+  const u = e.request.url;
+  if (e.request.method !== 'GET' || u.includes('youtube') || u.includes('ytimg')) return;
+  const tuile = /tile|arcgisonline/.test(u);
+  // Pages et données : réseau d'abord (pour avoir la dernière version), cache si pas de réseau
+  if (!tuile && !u.includes('/photos/')) {
+    e.respondWith(fetch(e.request).then(r => { const c = r.clone(); caches.open(V).then(x => x.put(e.request, c)); return r; })
+      .catch(() => caches.match(e.request)));
+    return;
+  }
+  // Photos et tuiles de carte : cache d'abord
+  const nom = tuile ? 'tuiles' : V;
+  e.respondWith(caches.match(e.request).then(m => m || fetch(e.request).then(r => {
+    const c = r.clone(); caches.open(nom).then(x => x.put(e.request, c)); return r; })));
+});

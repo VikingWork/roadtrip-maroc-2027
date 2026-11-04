@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Road trip Maroc · mai 2027</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1d1a17">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="t1">MAROC <span>MAI 2027</span></div>
+    <div class="t2">Loïc &amp; Fred · 2 × KTM 1290</div>
+  </div>
+  <button id="btn-urgence" class="urg" aria-label="Urgences">SOS</button>
+</header>
+<nav id="jours" class="jours"></nav>
+<div id="map"></div>
+<section id="panneau">
+  <div id="entete-jour"></div>
+  <div id="onglets" class="onglets"></div>
+  <div id="contenu"></div>
+</section>
+<div id="visionneuse" class="visio hidden" role="dialog">
+  <button class="fermer" aria-label="Fermer">✕</button>
+  <img alt="">
+  <div class="legende"></div>
+  <button class="nav prec" aria-label="Précédente">‹</button>
+  <button class="nav suiv" aria-label="Suivante">›</button>
+</div>
+<div id="urgences" class="modal hidden" role="dialog"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
