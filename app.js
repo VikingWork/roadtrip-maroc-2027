@@ -116,7 +116,7 @@ function dessinerCarte(){
     `<b>${esc(s.nom)}</b><br>km ${s.km}${s.h24?' · 24h/24':''}<br><a href="${lienPoint(s.lat,s.lon)}" target="_blank">Y aller</a>`).addTo(calques.st));
   J.photos_route.forEach((ph, i) => L.marker([ph.lat, ph.lon], {icon:ICO.ph}).on('click', () => ouvrirGalerie(J.photos_route, i)).addTo(calques.ph));
   J.visites.forEach((v, i) => L.marker([v.lat, v.lon], {icon:ICO.vis}).on('click', () => { ouvrirOnglet('visiter'); cibler('vis'+i); }).bindTooltip(v.nom).addTo(calques.vis));
-  J.repas.restos.forEach((r, i) => L.marker([r.lat, r.lon], {icon:ICO.resto}).on('click', () => { ouvrirOnglet('manger'); cibler('resto'+i); }).bindTooltip(r.nom).addTo(calques.resto));
+  tousRestos().forEach((r, i) => L.marker([r.lat, r.lon], {icon:ICO.resto}).on('click', () => { ouvrirOnglet('manger'); cibler('resto'+i); }).bindTooltip(r.nom).addTo(calques.resto));
   const n = J.nuit;
   L.marker([n.lat, n.lon], {icon:ICO.nuit}).on('click', () => ouvrirOnglet('dormir')).bindTooltip(n.nom).addTo(calques.nuit);
   map.fitBounds(ligne.getBounds(), {padding:[24,24]});
@@ -261,13 +261,40 @@ function vEssence(){
     <div class="meta">Repérées dans OpenStreetMap à moins de 600 m de la route. Au Maroc la base est incomplète : il y en a souvent plus, rarement moins. Beaucoup refusent la carte bancaire : avoir du liquide.</div>
     <ul class="liste-st" style="margin-top:8px">${html || '<li>Aucune station repérée</li>'}</ul></div>`;
 }
+/* Restos : photos chargées en direct depuis Google (clé limitée à ce site), note et « ouvert maintenant » rafraîchis à l'affichage */
+const moments = () => Array.isArray(J.repas) ? J.repas : [J.repas];
+const tousRestos = () => moments().flatMap(m => m.restos);
+const photoG = (name, w=800) => `https://places.googleapis.com/v1/${name}/media?maxWidthPx=${w}&key=${window.GKEY||''}`;
 function vManger(){
-  const r = J.repas;
-  return `<div class="carte"><h3>${esc(r.titre)}</h3><p>${esc(r.commentaire)}</p></div>` + r.restos.map((x, i) => `
-    <div class="carte" id="resto${i}"><h3>🍽️ ${esc(x.nom)}</h3><div class="meta">${esc(x.note)}</div><p>${esc(x.pourquoi)}</p>
-    <a class="btn clair" href="${lienPoint(x.lat,x.lon)}" target="_blank">🧭 Y aller</a>
-    <a class="btn clair" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.nom + ' ' + J.nuit.lieu.split(',')[0])}" target="_blank">Avis Google</a>
-    ${x.approx ? '<div class="credit" style="margin-top:6px">Position approximative : le bouton « Avis Google » donne l\'adresse exacte.</div>' : ''}</div>`).join('');
+  let n = 0;
+  const html = moments().map(m => `<div class="carte"><h3>${esc(m.titre)}</h3><div class="meta">${esc(m.heure||'')}</div><p>${esc(m.commentaire)}</p></div>` +
+    m.restos.map(x => { const i = n++; return `
+    <div class="carte" id="resto${i}"><h3>🍽️ ${esc(x.nom)}</h3>
+      <div class="meta"><span id="live${i}">${x.note_g ? `⭐ ${String(x.note_g).replace('.',',')} · ${x.avis_g} avis Google` : esc(x.note||'')}</span></div>
+      <p>${esc(x.pourquoi)}</p>
+      ${(x.photos||[]).length && window.GKEY ? `<div class="galerie">${x.photos.map((p, k) => `<img loading="lazy" src="${photoG(p.name, 600)}" data-g="resto${i}" data-i="${k}" alt="" onerror="this.remove()">`).join('')}</div>
+        <div class="credit">Photos : ${esc([...new Set(x.photos.flatMap(p => p.auteurs||[]))].slice(0,3).join(', '))} · Google Maps</div>` : ''}
+      ${(x.specialites||[]).length ? `<p><b>À commander :</b></p><ul style="margin:0 0 6px 18px;padding:0">${x.specialites.map(s => `<li>${esc(s)}</li>`).join('')}</ul>` : ''}
+      ${x.prix ? `<p>💰 ${esc(x.prix)}</p>` : ''}
+      ${(x.menu||[]).length ? `<details><summary>Voir la carte relevée sur photo (prix en dirhams)</summary><ul style="columns:2;font-size:13px;margin:6px 0 0 18px;padding:0">${x.menu.map(s => `<li>${esc(s)}</li>`).join('')}</ul><div class="credit">10 DH ≈ 0,92 €. Prix relevés sur une photo récente du menu, susceptibles d'avoir un peu bougé.</div></details>` : ''}
+      ${x.conseil ? `<p class="meta">ℹ️ ${esc(x.conseil)}</p>` : ''}
+      <div class="mini-actions"><a class="btn clair" href="${lienPoint(x.lat,x.lon)}" target="_blank">🧭 Y aller</a>
+      <a class="btn clair" href="${x.maps || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.nom)}`}" target="_blank">Avis et photos Google</a></div></div>`; }).join('')).join('');
+  setTimeout(rafraichirRestos, 0);
+  return html;
+}
+async function rafraichirRestos(){
+  if (!window.GKEY) return;
+  const L_ = tousRestos();
+  for (let i = 0; i < L_.length; i++) {
+    const x = L_[i], el = document.getElementById('live' + i); if (!x.id || !el) continue;
+    try {
+      const r = await fetch(`https://places.googleapis.com/v1/places/${x.id}?languageCode=fr`, {headers:{'X-Goog-Api-Key':window.GKEY, 'X-Goog-FieldMask':'rating,userRatingCount,currentOpeningHours.openNow'}});
+      if (!r.ok) continue;
+      const d = await r.json(), o = d.currentOpeningHours ? d.currentOpeningHours.openNow : null;
+      el.innerHTML = `⭐ ${String(d.rating).replace('.',',')} · ${d.userRatingCount} avis Google (en direct)` + (o === null ? '' : o ? ' · <span class="badge ok">ouvert maintenant</span>' : ' · <span class="badge warn">fermé maintenant</span>');
+    } catch (e) {}
+  }
 }
 function vVisiter(){
   return J.visites.map((v, i) => `
@@ -319,7 +346,9 @@ function brancher(){
   document.querySelectorAll('#contenu [data-voir]').forEach(b => b.onclick = () => voirActivite(+b.dataset.voir));
   document.querySelectorAll('#contenu [data-g]').forEach(el => el.onclick = () => {
     const g = el.dataset.g, i = +el.dataset.i;
-    const liste = g === 'route' ? J.photos_route : g === 'nuit' ? J.nuit.photos : J.visites[+g.slice(3)].photos;
+    const liste = g === 'route' ? J.photos_route : g === 'nuit' ? J.nuit.photos
+      : g.startsWith('resto') ? tousRestos()[+g.slice(5)].photos.map(p => ({src: photoG(p.name, 1600), auteur: (p.auteurs||[]).join(', '), source: 'Google Maps', licence: '', lien: tousRestos()[+g.slice(5)].maps}))
+      : J.visites[+g.slice(3)].photos;
     ouvrirGalerie(liste, i);
   });
   document.querySelectorAll('#contenu .yt').forEach(el => el.onclick = () => {
