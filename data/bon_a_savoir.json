@@ -1,0 +1,71 @@
+{
+ "maj": "04/11/2026 — à revérifier en avril 2027",
+ "alertes": [
+  "⚠ <b>Aïd el-Kébir 2027 : probablement le dimanche 16 mai</b> (calcul astronomique, date officielle annoncée 1 à 2 jours avant, peut glisser au 17). Notre retour du samedi 15 tombe donc la <b>veille</b> : autoroute chargée (départs en famille), marchés aux moutons partout, commerces et restos qui ferment plus tôt. On part tôt de Marrakech et on garde de la marge au port."
+ ],
+ "sections": [
+  {"titre": "🛃 Douane moto (entrée et sortie)",
+   "points": [
+    "À avoir sur soi : passeport, carte grise ORIGINALE (procuration légalisée si elle n'est pas à votre nom : pour la KTM en crédit, vérifier le titulaire), carte verte avec le Maroc (« MA ») non barré. Sinon, assurance frontière vendue au guichet du port.",
+    "Pas de formulaire papier à remplir pour la moto depuis 2019 (l'ancien D16 ter est supprimé) : le douanier saisit l'importation temporaire dans son système et remet un document d'admission temporaire. Le garder avec la carte grise jusqu'à la sortie. Aucune pré-déclaration en ligne trouvée pour les touristes.",
+    "Police : la fiche et le tampon se font en général à bord du bateau pendant la traversée (vérifier les annonces à bord).",
+    "À la sortie (Tanger Med), la sortie de la moto doit être enregistrée : présenter le document d'admission temporaire. Compter 1 à 2 h de formalités ; les motos passent souvent devant les voitures.",
+    "Au port, ne confier ses papiers qu'aux agents en uniforme, jamais aux « aides » qui proposent de faire les formalités."
+   ],
+   "sources": ["https://www.horizonsunlimited.com/hubb/morocco/morocco-entry-procedure-63507-print", "https://www.bladi.net/maroc-mre-savoir-venir-voiture,121114.html", "https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/maroc/"]},
+  {"titre": "💶 Argent",
+   "points": [
+    "Le dirham ne s'exporte pas (petite somme tolérée seulement). Change au port de Tanger Med (bureaux de change + distributeur) ou en ville ; garder les bordereaux de change pour reconvertir à la sortie.",
+    "Distributeurs dans toutes les villes ; carte acceptée dans les hôtels et certains restos, mais essence, parkings, petits restos et souks = liquide. Avoir toujours de la petite monnaie (pièces de 10 DH, billets de 20).",
+    "Repère : 10 DH ≈ 0,92 €. Un repas local 80-150 DH, un thé 10-15 DH, un parking gardé 20-50 DH par 24 h.",
+    "Pourboires usuels : gardien de parking 5-10 DH (plus si la nuit), 10 % au resto, guide officiel 50-100 DH en plus du tarif, gardien de kasbah 10-20 DH.",
+    "Marchandage normal dans les souks : commencer vers le tiers du prix annoncé, rester souriant, savoir partir."
+   ],
+   "sources": ["https://www.bladi.net/douane-marocaine-faut-savoir-importation-devises,118887.html"]},
+  {"titre": "📱 Téléphone et internet",
+   "points": [
+    "Notre forfait Sosh Voyage et l'eSIM sont déjà prévus. Plan B : SIM locale Maroc Telecom (20 DH, puis 10 Go ≈ 100 DH), Orange (10 Go ≈ 100 DH) ou Inwi (10 Go ≈ 99 DH), passeport demandé. eSIM possible chez Orange et Maroc Telecom.",
+    "Réseau 4G correct sur les grands axes ; trous dans l'Ounila, le haut des gorges du Dadès et certains plateaux : télécharger les cartes hors ligne (Google Maps / OsmAnd) avant."
+   ],
+   "sources": ["https://www.zetsim.com/blogs/news/morocco-sim-card-guide-2026-esim-prices-where-to-buy"]},
+  {"titre": "🚓 Code de la route et police",
+   "points": [
+    "Limites : 60 km/h en ville (souvent 40 signalé), 100 sur route, 120 sur autoroute. Radars fixes et mobiles très nombreux, gendarmes à l'entrée des villages.",
+    "Les amendes se paient sur place contre reçu. Ne jamais proposer d'argent : la corruption est de plus en plus sanctionnée.",
+    "Moto = même tarif que la voiture au péage (pas de classe moto).",
+    "Éviter de rouler de nuit : piétons, ânes, charrettes et voitures sans feux.",
+    "Ronds-points : la priorité varie, souvent à celui qui est déjà dans l'anneau ; regarder et anticiper plutôt que compter sur la règle."
+   ],
+   "sources": ["https://www.lerepairedesmotards.com/voyages/maroc/code-de-la-route.php", "https://www.lerepairedesmotards.com/actualites/2013/actu_130906-autoroutes-marocaines-rejet-demande-tarif-motos.php"]},
+  {"titre": "🚫 Interdits",
+   "points": [
+    "Drone : interdit d'entrée sans autorisation, saisi à la douane et amende possible. On le laisse à la maison.",
+    "Ne pas photographier militaires, policiers, postes de contrôle, palais royaux et bâtiments officiels.",
+    "Demander avant de photographier quelqu'un ; beaucoup refusent, d'autres demandent quelques dirhams.",
+    "Drogue (le kif proposé dans le Rif) : sévèrement puni."
+   ],
+   "sources": ["https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/maroc/"]},
+  {"titre": "🩺 Sécurité, santé, essence",
+   "points": [
+    "Eau en bouteille uniquement, éviter les crudités les premiers jours. Trousse : anti-diarrhéique, réhydratation.",
+    "Vols à l'arraché surtout à Marrakech et Casablanca : téléphone et portefeuille dans une poche fermée, rien sur la moto à l'arrêt.",
+    "Chiens errants, surtout la nuit dans les villages.",
+    "Essence sans plomb disponible partout sur le goudron ; faire le plein dès qu'on passe sous la moitié dans le sud. Paiement en liquide le plus sûr.",
+    "Assistance santé : carte Gold (numéro au dos), appeler AVANT toute dépense. Moto : assistance de l'assurance moto."
+   ]},
+  {"titre": "📅 Calendrier",
+   "points": [
+    "Ramadan 2027 : environ du 8 février au 9 mars. Fini bien avant notre voyage.",
+    "Aïd el-Kébir : probablement le 16 mai 2027 (voir l'alerte en haut).",
+    "Moussem des roses de Kelaat M'Gouna : début mai (5-8 mai en 2025, 6-9 mai en 2026). On y passe le 12 : peut-être juste après, date 2027 à vérifier au printemps.",
+    "Le vendredi (7 et 14 mai) : grande prière vers 13h, boutiques fermées autour, médersa Bou Inania fermée à Fès ; couscous dans tous les restos.",
+    "Souk de Kelaat M'Gouna le mercredi : c'est notre jour de passage."
+   ],
+   "sources": ["https://islamic.app/hijri/eid-al-adha/2027", "https://en.expresstv.ma/?p=14366", "https://visitdraatafilalet.com/en/activities/stroll-in-draa-tafilalets-souks"]},
+  {"titre": "🗣 Darija de survie",
+   "points": ["Prononciation à la française. Le français est compris presque partout dans les villes."],
+   "tableau": [["Bonjour", "salam"], ["Merci", "choukrane"], ["Non merci", "la, choukrane"], ["S'il vous plaît", "afak"], ["Combien ?", "chhal ?"],
+               ["L'addition", "l-hsab, afak"], ["Essence", "l-benzine"], ["De l'eau", "lma"], ["Doucement", "bchouiya"], ["Oui", "iyeh"]],
+   "sources": ["https://generationvoyage.fr/parler-darija-maroc/"]}
+ ]
+}

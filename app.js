@@ -2,7 +2,7 @@
 const PLAN = [
   {id:'j1', num:1, date:'mer 5', titre:'Tanger Med → Chefchaouen'},
   {id:'j2', num:2, date:'jeu 6', titre:'Chefchaouen → Fès'},
-  {id:'j3', num:3, date:'ven 7', titre:'Volubilis (boucle)'},
+  {id:'j3', num:3, date:'ven 7', titre:'Fès à pied + Volubilis'},
   {id:'j4', num:4, date:'sam 8', titre:'Fès → Midelt'},
   {id:'j5', num:5, date:'dim 9', titre:'Midelt → Merzouga'},
   {id:'j6', num:6, date:'lun 10', titre:'Merzouga → Todra'},
@@ -10,9 +10,9 @@ const PLAN = [
   {id:'j8', num:8, date:'mer 12', titre:'Dadès → Aït Ben Haddou'},
   {id:'j9', num:9, date:'jeu 13', titre:'Aït Ben Haddou → Marrakech'},
   {id:'j10', num:10, date:'ven 14', titre:'Marrakech'},
-  {id:'j11', num:11, date:'sam 15', titre:'Marrakech → Tanger Med'},
+  {id:'j11', num:11, date:'sam 15', titre:'Marrakech → Asilah → Tanger Med'},
 ];
-const PRETS = ['j1','j7'];            // jours déjà construits (prototype)
+const PRETS = ['j1','j2','j3','j7'];  // jours construits et publiés
 const AUTONOMIE = 370, TROU_ALERTE = 80; // km
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -65,7 +65,7 @@ function infoBientot(id){
   const p = PLAN.find(x => x.id === id);
   $('#entete-jour').innerHTML = `<div class="date">Jour ${p.num} · ${esc(p.date)} mai</div><h1>${esc(p.titre)}</h1>`;
   $('#onglets').innerHTML = '';
-  $('#contenu').innerHTML = `<div class="vide-jour">Cette journée n'est pas encore construite : le prototype ne contient que les jours 1 et 7. Le reste arrive une fois le rendu validé.</div>`;
+  $('#contenu').innerHTML = `<div class="vide-jour">Cette journée est en cours de construction, elle arrive très bientôt.</div>`;
 }
 
 async function chargerJour(id){
@@ -142,11 +142,12 @@ function entete(){
     <h1>${esc(J.titre)}</h1>
     <div class="chiffres">
       <div class="chiffre"><b>${J.km_osrm} km</b><small>distance</small></div>
-      <div class="chiffre"><b>${String(J.h_osrm).replace('.',',')} h</b><small>conduite pure</small></div>
+      <div class="chiffre"><b>${String(J.h_osrm).replace('.',',')} h</b><small>${J.a_pied ? 'de marche' : 'conduite pure'}</small></div>
       <div class="chiffre"><b>${J.depart} → ${J.arrivee}</b><small>départ / arrivée</small></div>
       ${amax!==null?`<div class="chiffre"><b>${amin}–${amax} m</b><small>altitude</small></div>`:''}
     </div>
-    <div class="segments">${troncons().map((s, i) => `
+    ${J.a_pied ? `<div class="alerte">🚶 Journée à pied, motos au parking. Le tracé rouge relie les visites dans l'ordre du programme.</div>` : ''}
+    <div class="segments" ${J.a_pied ? 'style="display:none"' : ''}>${troncons().map((s, i) => `
       <div class="actions" style="margin:0">
         <a class="btn" href="${s.lien}" target="_blank" rel="noopener">🧭 Tronçon ${i+1} · km ${s.a} → ${s.b}</a>
         <a class="btn sec" href="${s.ici}" target="_blank" rel="noopener">📍 Depuis ma position</a></div>`).join('')}
@@ -166,7 +167,18 @@ function gpx(){
 }
 
 /* ---------- Onglets ---------- */
-const ONGLETS = [['programme','Programme'],['route','Route'],['essence','Essence'],['manger','Manger'],['visiter','Visiter'],['dormir','Dormir'],['pieges','Pièges']];
+const ONGLETS = [['programme','Programme'],['route','Route'],['essence','Essence'],['manger','Manger'],['visiter','Visiter'],['dormir','Dormir'],['pieges','Pièges'],['savoir','Bon à savoir']];
+/* Bon à savoir : infos générales (douane, argent, téléphone, code de la route…), communes à tous les jours */
+let SAVOIR = null;
+fetch('data/bon_a_savoir.json').then(r => r.json()).then(d => { SAVOIR = d; if (ongletActif === 'savoir') afficher('savoir'); }).catch(() => {});
+function vSavoir(){
+  if (!SAVOIR) return '<div class="carte">Chargement…</div>';
+  return (SAVOIR.alertes||[]).map(a => `<div class="alerte ko">${a}</div>`).join('') +
+    SAVOIR.sections.map(s => `<div class="carte"><h3>${esc(s.titre)}</h3><ul>${s.points.map(p => `<li style="margin:6px 0">${esc(p)}</li>`).join('')}</ul>
+      ${s.tableau ? `<table style="width:100%;font-size:14px;border-collapse:collapse">${s.tableau.map(l => `<tr>${l.map(c => `<td style="padding:4px 6px;border-bottom:1px solid #eee">${esc(c)}</td>`).join('')}</tr>`).join('')}</table>` : ''}
+      ${s.sources ? `<div class="credit">Sources : ${s.sources.map(u => `<a href="${u}" target="_blank" rel="noopener">${esc(new URL(u).hostname.replace('www.',''))}</a>`).join(' · ')}</div>` : ''}</div>`).join('') +
+    `<div class="carte"><h3>🆘 Numéros d'urgence</h3><p>Voir le bouton SOS en haut de l'écran.</p></div>`;
+}
 function onglets(){
   $('#onglets').innerHTML = ONGLETS.map(([k,l]) => `<button data-k="${k}" class="${k===ongletActif?'actif':''}">${l}</button>`).join('');
   $('#onglets').onclick = e => { const b = e.target.closest('button'); if (b) ouvrirOnglet(b.dataset.k); };
@@ -192,7 +204,7 @@ function vProgramme(){
     <div class="credit">« Vue immersive » : photos au ras du sol prises par des voyageurs, on avance dedans comme dans Street View. « Street View Google » : s'ouvre seulement si Google est passé par là (rare hors des grands axes au Maroc).</div>
     ${J.nuit.arrivee_h ? `<div class="alerte" style="margin-top:10px">🛏 <b>${esc(J.nuit.nom)}</b> : arrivée de ${esc(J.nuit.arrivee_h)}, départ le lendemain de ${esc(J.nuit.depart_h)}.</div>` : ''}</div>`;
 }
-function afficher(k){ $('#contenu').innerHTML = ({programme:vProgramme, route:vRoute, essence:vEssence, manger:vManger, visiter:vVisiter, dormir:vDormir, pieges:vPieges})[k](); brancher(); }
+function afficher(k){ $('#contenu').innerHTML = ({programme:vProgramme, route:vRoute, essence:vEssence, manger:vManger, visiter:vVisiter, dormir:vDormir, pieges:vPieges, savoir:vSavoir})[k](); brancher(); }
 
 function vRoute(){
   const ph = J.photos_route.map((p, i) => `<figure id="ph${i}" data-g="route" data-i="${i}"><img loading="lazy" src="${p.src}" alt="Route km ${p.km}"><figcaption>km ${p.km} · ${p.annee}</figcaption></figure>`).join('');
@@ -244,6 +256,7 @@ function profil(){
 }
 
 function vEssence(){
+  if (J.a_pied) return `<div class="carte"><h3>⛽ Journée sans moto</h3><p>Rien à prévoir aujourd'hui. Pour demain, le plein se fait à la sortie de la ville ou sur la première aire d'autoroute.</p></div>`;
   const s = J.stations, total = J.km_osrm;
   let html = '', prec = 0, maxTrou = 0;
   s.forEach(x => {
@@ -298,7 +311,12 @@ async function rafraichirRestos(){
 }
 function vVisiter(){
   return J.visites.map((v, i) => `
-    <div class="carte" id="vis${i}"><h3>📸 ${esc(v.nom)}</h3><p>${esc(v.texte)}</p>
+    <div class="carte" id="vis${i}"><h3>📸 ${esc(v.nom)}</h3>
+      ${v.prix ? `<div class="meta"><span class="badge ${/^gratuit/i.test(v.prix) ? 'ok' : 'warn'}">${esc(/^gratuit/i.test(v.prix) ? 'Gratuit' : 'Payant')}</span> ${esc(v.prix)}</div>` : ''}
+      ${v.horaires || v.duree ? `<div class="meta">${v.horaires ? '🕑 ' + esc(v.horaires) : ''}${v.horaires && v.duree ? ' · ' : ''}${v.duree ? '⏱ ' + esc(v.duree) : ''}</div>` : ''}
+      ${v.verif === 'approx' ? `<div class="meta">📍 position approximative (à quelques centaines de mètres près)</div>` : ''}
+      <p>${esc(v.texte)}</p>
+      ${v.voyageurs ? `<p class="meta">💬 <b>Ce que disent les voyageurs :</b> ${esc(v.voyageurs)}</p>` : ''}
       <div class="galerie">${(v.photos||[]).map((p, k) => `<img loading="lazy" src="${p.src}" data-g="vis${i}" data-i="${k}" alt="">`).join('')}</div>
       ${(v.videos||[]).map(carteYT).join('')}
       <div class="actions"><a class="btn clair" href="${lienPoint(v.lat,v.lon)}" target="_blank">🧭 Y aller</a></div></div>`).join('');
