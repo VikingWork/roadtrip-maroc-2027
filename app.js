@@ -47,7 +47,7 @@ legende.onAdd = () => { const d = L.DomUtil.create('div', 'legende-carte');
 legende.addTo(map);
 
 /* ---------- État ---------- */
-let J = null, ongletActif = 'route', galerieCourante = [], idxPhoto = 0;
+let J = null, ongletActif = 'programme', galerieCourante = [], idxPhoto = 0;
 const cache = {};
 
 function barreJours(){
@@ -166,7 +166,7 @@ function gpx(){
 }
 
 /* ---------- Onglets ---------- */
-const ONGLETS = [['route','Route'],['essence','Essence'],['manger','Manger'],['visiter','Visiter'],['dormir','Dormir'],['pieges','Pièges']];
+const ONGLETS = [['programme','Programme'],['route','Route'],['essence','Essence'],['manger','Manger'],['visiter','Visiter'],['dormir','Dormir'],['pieges','Pièges']];
 function onglets(){
   $('#onglets').innerHTML = ONGLETS.map(([k,l]) => `<button data-k="${k}" class="${k===ongletActif?'actif':''}">${l}</button>`).join('');
   $('#onglets').onclick = e => { const b = e.target.closest('button'); if (b) ouvrirOnglet(b.dataset.k); };
@@ -176,7 +176,16 @@ function ouvrirOnglet(k){
   document.querySelectorAll('#onglets button').forEach(b => b.classList.toggle('actif', b.dataset.k === k));
   afficher(k);
 }
-function afficher(k){ $('#contenu').innerHTML = ({route:vRoute, essence:vEssence, manger:vManger, visiter:vVisiter, dormir:vDormir, pieges:vPieges})[k](); brancher(); }
+function vProgramme(){
+  const ico = {pied:'🚶', moto:'🏍️', info:'•'}, lib = {pied:'À pied', moto:'À moto', info:''};
+  return `<div class="carte"><h3>Programme de la journée</h3><div class="meta">Heures marocaines (1 h de moins qu'en France). Départ et arrivée des hébergements en bas de page.</div>
+    <div class="prog">${(J.programme||[]).map(p => `<div class="etape ${p.m}">
+      <div class="h">${esc(p.h)}</div>
+      <div class="c"><b>${ico[p.m]||''} ${esc(p.t)}</b>${p.d ? `<div class="meta">${lib[p.m] ? lib[p.m]+' · ' : ''}${esc(p.d)}</div>` : ''}
+        <div>${esc(p.x)}</div>${p.l ? `<a class="btn clair" style="margin-top:6px;padding:6px 10px" href="${p.l}" target="_blank" rel="noopener">${p.m==='pied'?'🚶':'🧭'} ${esc(p.lt||'Y aller')}</a>` : ''}</div></div>`).join('')}</div>
+    ${J.nuit.arrivee_h ? `<div class="alerte" style="margin-top:10px">🛏 <b>${esc(J.nuit.nom)}</b> : arrivée de ${esc(J.nuit.arrivee_h)}, départ le lendemain de ${esc(J.nuit.depart_h)}.</div>` : ''}</div>`;
+}
+function afficher(k){ $('#contenu').innerHTML = ({programme:vProgramme, route:vRoute, essence:vEssence, manger:vManger, visiter:vVisiter, dormir:vDormir, pieges:vPieges})[k](); brancher(); }
 
 function vRoute(){
   const ph = J.photos_route.map((p, i) => `<figure id="ph${i}" data-g="route" data-i="${i}"><img loading="lazy" src="${p.src}" alt="Route km ${p.km}"><figcaption>km ${p.km} · ${p.annee}</figcaption></figure>`).join('');
@@ -264,8 +273,12 @@ function vDormir(){
   const n = J.nuit;
   return `<div class="carte"><h3>🛏️ ${esc(n.nom)}</h3><div class="meta">${esc(n.lieu)} · note Booking ${esc(n.note)}</div>
     <p><b>${esc(n.prix)}</b><br>Annulation : ${esc(n.annulation)}<br>Statut : <span class="badge warn">${esc(n.statut)}</span></p>
+    ${n.arrivee_h ? `<p>🕑 Arrivée : <b>${esc(n.arrivee_h)}</b><br>🕚 Départ : <b>${esc(n.depart_h)}</b></p>` : ''}
     <p>${esc(n.astuce)}</p>
-    <div class="actions"><a class="btn" href="${n.booking}" target="_blank">Voir sur Booking</a>
+    <div class="actions"><a class="btn" href="${n.booking}" target="_blank">📷 Photos et avis sur Booking</a></div>
+    ${(n.photos||[]).length ? `<h3 style="margin-top:10px">Les abords</h3><div class="meta">Photos prises dans la rue autour de l'hébergement (Mapillary) pour repérer l'accès et le stationnement.</div>
+      <div class="galerie">${n.photos.map((p, k) => `<img loading="lazy" src="${p.src}" data-g="nuit" data-i="${k}" alt="">`).join('')}</div>` : ''}
+    <div class="actions">
     <a class="btn clair" href="${lienPoint(n.lat,n.lon)}" target="_blank">🧭 Y aller</a></div></div>`;
 }
 function vPieges(){
@@ -281,7 +294,7 @@ function carteYT(v){
 function brancher(){
   document.querySelectorAll('#contenu [data-g]').forEach(el => el.onclick = () => {
     const g = el.dataset.g, i = +el.dataset.i;
-    const liste = g === 'route' ? J.photos_route : J.visites[+g.slice(3)].photos;
+    const liste = g === 'route' ? J.photos_route : g === 'nuit' ? J.nuit.photos : J.visites[+g.slice(3)].photos;
     ouvrirGalerie(liste, i);
   });
   document.querySelectorAll('#contenu .yt').forEach(el => el.onclick = () => {

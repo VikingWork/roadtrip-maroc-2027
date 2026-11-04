@@ -85,5 +85,12 @@ html,body{margin:0;padding:0;background:var(--sable);color:var(--txt);font:15px/
 .meteo div{background:var(--sable);border-radius:10px;padding:8px 10px}
 .meteo b{font:700 22px 'Barlow Condensed'}
 .segments{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.prog{margin-top:10px;border-left:3px solid var(--sable2);margin-left:28px}
+.etape{display:flex;gap:10px;position:relative;padding:0 0 14px 0}
+.etape .h{position:absolute;left:-64px;width:52px;text-align:right;font:700 15px 'Barlow Condensed';color:var(--terre)}
+.etape .c{padding-left:12px;position:relative}
+.etape .c::before{content:'';position:absolute;left:-8px;top:5px;width:11px;height:11px;border-radius:50%;background:var(--gris);border:2px solid #fff}
+.etape.pied .c::before{background:#2f6fd0}.etape.moto .c::before{background:var(--terre)}
+.prog{margin-left:64px}
 .vide-jour{padding:30px 14px;color:var(--gris)}
 @media(min-width:900px){#map{height:58vh}}
