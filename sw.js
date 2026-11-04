@@ -1,5 +1,5 @@
 ﻿// Mode hors-ligne partiel : la page, les donnÃ©es, les photos et les morceaux de carte dÃ©jÃ  vus restent en mÃ©moire.
-const V = 'maroc-v3';
+const V = 'maroc-v4';
 const BASE = ['./', 'index.html', 'style.css', 'app.js', 'manifest.json', 'data/j1.json', 'data/j7.json',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(BASE)).catch(() => {})); self.skipWaiting(); });

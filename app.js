@@ -105,7 +105,7 @@ const lienPoint = (la, lo) => `https://www.google.com/maps/dir/?api=1&travelmode
 
 /* ---------- Dessin de la carte ---------- */
 function dessinerCarte(){
-  Object.values(calques).forEach(c => c.clearLayers());
+  Object.values(calques).forEach(c => c.clearLayers()); calqueActivite.clearLayers();
   const t = J.trace;
   L.polyline(t, {color:'#fff', weight:9, opacity:.9}).addTo(calques.trace);
   const ligne = L.polyline(t, {color:'#c4572e', weight:5, opacity:.95}).addTo(calques.trace);
@@ -179,10 +179,17 @@ function ouvrirOnglet(k){
 function vProgramme(){
   const ico = {pied:'🚶', moto:'🏍️', info:'•'}, lib = {pied:'À pied', moto:'À moto', info:''};
   return `<div class="carte"><h3>Programme de la journée</h3><div class="meta">Heures marocaines (1 h de moins qu'en France). Départ et arrivée des hébergements en bas de page.</div>
-    <div class="prog">${(J.programme||[]).map(p => `<div class="etape ${p.m}">
+    <div class="prog">${(J.programme||[]).map((p, i) => `<div class="etape ${p.m}">
       <div class="h">${esc(p.h)}</div>
       <div class="c"><b>${ico[p.m]||''} ${esc(p.t)}</b>${p.d ? `<div class="meta">${lib[p.m] ? lib[p.m]+' · ' : ''}${esc(p.d)}</div>` : ''}
-        <div>${esc(p.x)}</div>${p.l ? `<a class="btn clair" style="margin-top:6px;padding:6px 10px" href="${p.l}" target="_blank" rel="noopener">${p.m==='pied'?'🚶':'🧭'} ${esc(p.lt||'Y aller')}</a>` : ''}</div></div>`).join('')}</div>
+        <div>${esc(p.x)}</div>
+        <div class="mini-actions">
+          ${p.chemin ? `<button class="btn" data-voir="${i}">🗺 Voir sur la carte</button>` : ''}
+          ${p.vue ? `<a class="btn sec" href="${p.vue}" target="_blank" rel="noopener">👁 Vue immersive (Mapillary)</a>` : ''}
+          ${p.sv ? `<a class="btn clair" href="${p.sv}" target="_blank" rel="noopener">Street View Google</a>` : ''}
+          ${p.l ? `<a class="btn clair" href="${p.l}" target="_blank" rel="noopener">${p.m==='pied'?'🚶':'🧭'} ${esc(p.lt||'Y aller')}</a>` : ''}
+        </div></div></div>`).join('')}</div>
+    <div class="credit">« Vue immersive » : photos au ras du sol prises par des voyageurs, on avance dedans comme dans Street View. « Street View Google » : s'ouvre seulement si Google est passé par là (rare hors des grands axes au Maroc).</div>
     ${J.nuit.arrivee_h ? `<div class="alerte" style="margin-top:10px">🛏 <b>${esc(J.nuit.nom)}</b> : arrivée de ${esc(J.nuit.arrivee_h)}, départ le lendemain de ${esc(J.nuit.depart_h)}.</div>` : ''}</div>`;
 }
 function afficher(k){ $('#contenu').innerHTML = ({programme:vProgramme, route:vRoute, essence:vEssence, manger:vManger, visiter:vVisiter, dormir:vDormir, pieges:vPieges})[k](); brancher(); }
@@ -290,8 +297,26 @@ function carteYT(v){
     <div class="credit">${esc(v.titre)} — ${esc(v.chaine)}${v.debut ? ` · démarre à ${Math.floor(v.debut/60)}:${String(v.debut%60).padStart(2,'0')}` : ''}</div>`;
 }
 
+/* ---------- Activité du programme surlignée sur la carte ---------- */
+const calqueActivite = L.layerGroup().addTo(map);
+function voirActivite(i){
+  const p = J.programme[i]; if (!p || !p.chemin) return;
+  calqueActivite.clearLayers();
+  const coul = p.m === 'pied' ? '#2f6fd0' : '#c4572e';
+  if (p.chemin.length > 1) {
+    L.polyline(p.chemin, {color:'#fff', weight:9, opacity:.9}).addTo(calqueActivite);
+    const l = L.polyline(p.chemin, {color:coul, weight:5, dashArray: p.m === 'pied' ? '8 8' : null}).addTo(calqueActivite);
+    L.circleMarker(p.chemin[0], {radius:7, color:'#fff', weight:3, fillColor:'#1d1a17', fillOpacity:1}).bindTooltip('Départ').addTo(calqueActivite);
+    map.fitBounds(l.getBounds(), {padding:[40,40], maxZoom:17});
+  } else map.setView(p.chemin[0], 15);
+  L.marker(p.chemin[p.chemin.length-1], {icon: badge(p.m === 'pied' ? '🚶' : '🏍', coul, 36)})
+    .bindTooltip(p.t, {permanent:true, direction:'top', offset:[0,-36]}).addTo(calqueActivite);
+  document.getElementById('map').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
 /* ---------- Interactions : photos, vidéos ---------- */
 function brancher(){
+  document.querySelectorAll('#contenu [data-voir]').forEach(b => b.onclick = () => voirActivite(+b.dataset.voir));
   document.querySelectorAll('#contenu [data-g]').forEach(el => el.onclick = () => {
     const g = el.dataset.g, i = +el.dataset.i;
     const liste = g === 'route' ? J.photos_route : g === 'nuit' ? J.nuit.photos : J.visites[+g.slice(3)].photos;

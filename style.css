@@ -92,5 +92,7 @@ html,body{margin:0;padding:0;background:var(--sable);color:var(--txt);font:15px/
 .etape .c::before{content:'';position:absolute;left:-8px;top:5px;width:11px;height:11px;border-radius:50%;background:var(--gris);border:2px solid #fff}
 .etape.pied .c::before{background:#2f6fd0}.etape.moto .c::before{background:var(--terre)}
 .prog{margin-left:64px}
+.mini-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.mini-actions .btn{padding:6px 10px;font-size:13px}
 .vide-jour{padding:30px 14px;color:var(--gris)}
 @media(min-width:900px){#map{height:58vh}}
