@@ -12,7 +12,7 @@ const PLAN = [
   {id:'j10', num:10, date:'ven 14', titre:'Marrakech'},
   {id:'j11', num:11, date:'sam 15', titre:'Marrakech → Asilah → Tanger Med'},
 ];
-const PRETS = ['j1','j2','j3','j4','j5','j6','j7','j8'];  // jours construits et publiés
+const PRETS = ['j1','j2','j3','j4','j5','j6','j7','j8','j9'];  // jours construits et publiés
 const AUTONOMIE = 370, TROU_ALERTE = 80; // km
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
