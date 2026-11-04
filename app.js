@@ -51,13 +51,13 @@ let J = null, ongletActif = 'programme', galerieCourante = [], idxPhoto = 0;
 const cache = {};
 
 function barreJours(){
-  $('#jours').innerHTML = PLAN.map(p => {
+  $('#jours').innerHTML = `<button data-id="tout" title="Vue d'ensemble de la boucle">🗺 La boucle</button>` + PLAN.map(p => {
     const pret = PRETS.includes(p.id);
     return `<button data-id="${p.id}" class="${pret?'':'vide'}" title="${esc(p.titre)}">J${p.num} · ${esc(p.date)}</button>`;
   }).join('');
   $('#jours').onclick = e => {
     const b = e.target.closest('button'); if (!b) return;
-    if (!PRETS.includes(b.dataset.id)) { infoBientot(b.dataset.id); return; }
+    if (b.dataset.id !== 'tout' && !PRETS.includes(b.dataset.id)) { infoBientot(b.dataset.id); return; }
     location.hash = b.dataset.id;
   };
 }
@@ -408,7 +408,56 @@ $('#btn-urgence').onclick = () => {
 };
 $('#urgences').onclick = e => { if (e.target.id === 'urgences') $('#urgences').classList.add('hidden'); };
 
+/* ---------- Vue d'ensemble de la boucle ---------- */
+const COUL = ['#c4572e','#3a6ea5','#4f7d4a','#8a4fa3','#c98a1b','#1f8a8a','#b3321f','#5b6b2f','#d0679a','#2f4f9f','#7a5230'];
+let ENS = null;
+async function chargerEnsemble(){
+  if (!ENS) ENS = await (await fetch('data/ensemble.json')).json();
+  J = null;
+  document.querySelectorAll('#jours button').forEach(b => b.classList.toggle('actif', b.dataset.id === 'tout'));
+  Object.values(calques).forEach(c => c.clearLayers()); calqueActivite.clearLayers();
+  const bornes = [];
+  ENS.jours.forEach((j, i) => {
+    const c = COUL[i % COUL.length];
+    L.polyline(j.trace, {color:'#fff', weight:7, opacity:.9}).addTo(calques.trace);
+    L.polyline(j.trace, {color:c, weight:4, opacity:.95, dashArray: j.a_pied ? '6 6' : null})
+      .bindTooltip(`J${j.num} · ${esc(j.titre)} · ${j.km} km`, {sticky:true}).on('click', () => location.hash = j.id).addTo(calques.trace);
+    bornes.push(...j.trace);
+    if (j.id !== 'j11') L.marker([j.nuit_lat, j.nuit_lon], {icon: L.divIcon({className:'', iconSize:[26,26], iconAnchor:[13,13],
+      html:`<div style="width:26px;height:26px;border-radius:50%;background:${c};color:#fff;border:2px solid #fff;font:700 13px 'Barlow Condensed';display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.4)">${j.num}</div>`})})
+      .bindTooltip(`Nuit ${j.num} : ${esc(j.nuit)}`).on('click', () => location.hash = j.id).addTo(calques.nuit);
+  });
+  L.marker([35.8804, -5.5073], {icon: L.divIcon({className:'', iconSize:[30,30], iconAnchor:[15,15], html:'<div style="font-size:26px">⛴</div>'})})
+    .bindTooltip('Tanger Med : arrivée mer. 5 mai 13h40 · départ sam. 15 mai 23h30', {permanent:true, direction:'right'}).addTo(calques.nuit);
+  map.fitBounds(L.latLngBounds(bornes), {padding:[20,20]});
+  const t = ENS.total;
+  $('#entete-jour').innerHTML = `<div class="date">Loïc &amp; Fred · 3 → 17 mai 2027</div><h1>La boucle en un coup d'œil</h1>
+    <div class="chiffres">
+      <div class="chiffre"><b>${t.km.toLocaleString('fr-FR')} km</b><small>au Maroc, à moto</small></div>
+      <div class="chiffre"><b>${String(t.h).replace('.',',')} h</b><small>de conduite pure</small></div>
+      <div class="chiffre"><b>11 j · 10 nuits</b><small>sur place</small></div>
+      <div class="chiffre"><b>${t.alt_max} m</b><small>point le plus haut</small></div>
+    </div>`;
+  $('#onglets').innerHTML = '';
+  $('#contenu').innerHTML = `<div class="carte"><p>⛴ <b>Aller</b> : Sète lun. 3 mai 19h → Tanger Med mer. 5 mai 13h40 (≈ 43 h de bateau). Puis le Rif, Fès, le Moyen Atlas, le désert de Merzouga, les gorges du Todra et du Dadès, la route des kasbahs, le Haut Atlas et Marrakech. <b>Retour</b> : Tanger Med sam. 15 mai 23h30 → Sète lun. 17 mai 13h30.</p></div>
+    <div class="carte"><h3>Les étapes</h3><div class="meta">Touchez une ligne (ou un tracé sur la carte) pour ouvrir la journée en détail.</div>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin-top:8px">
+      <tr style="text-align:left;color:var(--gris);font-size:12px"><th></th><th>Étape</th><th>Route</th><th>Nuit</th><th>Météo</th></tr>
+      ${ENS.jours.map((j, i) => `<tr data-j="${j.id}" style="cursor:pointer;border-top:1px solid var(--sable2)">
+        <td style="padding:7px 4px;vertical-align:top"><span style="display:inline-block;width:22px;height:22px;border-radius:50%;background:${COUL[i % COUL.length]};color:#fff;text-align:center;font:700 13px/22px 'Barlow Condensed'">${j.num}</span></td>
+        <td style="padding:7px 4px"><b>${esc(j.titre)}</b><br><span class="meta">${esc(j.date)}${j.visite ? ' · ' + esc(j.visite) : ''}</span></td>
+        <td style="padding:7px 4px;white-space:nowrap">${j.a_pied ? '🚶 à pied' : `${j.km} km<br><span class="meta">${String(j.h).replace('.',',')} h · ${j.depart}→${j.arrivee}</span>`}</td>
+        <td style="padding:7px 4px">${esc(j.nuit)}</td>
+        <td style="padding:7px 4px;white-space:nowrap">${esc(j.temp)}</td></tr>`).join('')}
+    </table></div>
+    <div class="alerte">⚠ Aïd el-Kébir probablement le dim. 16 mai : le retour du samedi tombe la veille. Détails dans l'onglet « Bon à savoir » de chaque jour.</div>`;
+  document.querySelectorAll('#contenu tr[data-j]').forEach(tr => tr.onclick = () => location.hash = tr.dataset.j);
+  window.scrollTo({top:0});
+}
+
 /* ---------- Démarrage ---------- */
-function route(){ const id = location.hash.slice(1); chargerJour(PRETS.includes(id) ? id : PRETS[0]).catch(err => { $('#contenu').innerHTML = '<div class="alerte ko">Impossible de charger la journée (réseau ?).</div>'; console.log(err); }); }
+function route(){ const id = location.hash.slice(1);
+  if (id === 'tout' || !id) { chargerEnsemble().catch(err => console.log(err)); return; }
+  chargerJour(PRETS.includes(id) ? id : PRETS[0]).catch(err => { $('#contenu').innerHTML = '<div class="alerte ko">Impossible de charger la journée (réseau ?).</div>'; console.log(err); }); }
 barreJours(); window.addEventListener('hashchange', route); route();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
