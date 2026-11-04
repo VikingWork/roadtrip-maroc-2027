@@ -49,7 +49,7 @@ html,body{margin:0;padding:0;background:var(--sable);color:var(--txt);font:15px/
 .badge{display:inline-block;font-size:11px;font-weight:600;border-radius:6px;padding:1px 6px;background:var(--sable2);color:var(--txt)}
 .badge.ok{background:#e3efe1;color:var(--vert)}
 .badge.warn{background:#fdf0d5;color:#8a5a00}
-.yt{position:relative;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#000;margin-top:8px;cursor:pointer}
+.yt{position:relative;aspect-ratio:16/9;max-width:520px;border-radius:10px;overflow:hidden;background:#000;margin-top:8px;cursor:pointer}
 .yt img{width:100%;height:100%;object-fit:cover;opacity:.85}
 .yt .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:54px;color:#fff;text-shadow:0 2px 10px #000}
 .yt .dur{position:absolute;right:8px;bottom:8px;background:#000c;color:#fff;font-size:12px;padding:2px 6px;border-radius:5px}
