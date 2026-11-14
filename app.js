@@ -324,7 +324,7 @@ function vVisiter(){
 function vDormir(){
   const n = J.nuit;
   return `<div class="carte"><h3>🛏️ ${esc(n.nom)}</h3><div class="meta">${esc(n.lieu)} · note Booking ${esc(n.note)}</div>
-    <p><b>${esc(n.prix)}</b><br>Annulation : ${esc(n.annulation)}<br>Statut : <span class="badge warn">${esc(n.statut)}</span></p>
+    <p><b>${esc(n.prix)}</b><br>Annulation : ${esc(n.annulation)}<br>Statut : <span class="badge ${/^réservé/.test(n.statut||'') ? 'ok' : 'warn'}">${esc(n.statut)}</span></p>
     ${n.arrivee_h ? `<p>🕑 Arrivée : <b>${esc(n.arrivee_h)}</b><br>🕚 Départ : <b>${esc(n.depart_h)}</b></p>` : ''}
     <p>${esc(n.astuce)}</p>
     <div class="actions"><a class="btn" href="${n.booking}" target="_blank">📷 Photos et avis sur Booking</a></div>
