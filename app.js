@@ -38,11 +38,12 @@ const ICO = {
   st: ico('⛽', 'pin-st', [22,22]),
   ph: ico('', 'pin-ph', [14,14]),
   vis: badge('📷', '#2f6fd0'), resto: badge('🍴', '#e07b00'), nuit: badge('🛏', '#7b2fa8', 38), dep: badge('🏁', '#1d1a17', 30),
+  pk: badge('🅿', '#1f6f8b', 30), pkb: badge('🅿', '#8a8a8a', 26),
 };
 // Légende toujours visible en bas à gauche
 const legende = L.control({position:'bottomleft'});
 legende.onAdd = () => { const d = L.DomUtil.create('div', 'legende-carte');
-  d.innerHTML = '<span><i style="background:#c4572e"></i>Tracé</span><span><i class="r" style="background:#2f6fd0"></i>Visite</span><span><i class="r" style="background:#e07b00"></i>Resto</span><span><i class="r" style="background:#7b2fa8"></i>Nuit</span><span><i class="r" style="background:#fff;border:2px solid #4f7d4a"></i>Essence</span><span><i class="r p"></i>Photo route</span>';
+  d.innerHTML = '<span><i style="background:#c4572e"></i>Tracé</span><span><i class="r" style="background:#2f6fd0"></i>Visite</span><span><i class="r" style="background:#e07b00"></i>Resto</span><span><i class="r" style="background:#7b2fa8"></i>Nuit</span><span><i class="r" style="background:#1f6f8b"></i>Parking</span><span><i class="r" style="background:#fff;border:2px solid #4f7d4a"></i>Essence</span><span><i class="r p"></i>Photo route</span>';
   return d; };
 legende.addTo(map);
 
@@ -119,6 +120,11 @@ function dessinerCarte(){
   tousRestos().forEach((r, i) => L.marker([r.lat, r.lon], {icon:ICO.resto}).on('click', () => { ouvrirOnglet('manger'); cibler('resto'+i); }).bindTooltip(r.nom).addTo(calques.resto));
   const n = J.nuit;
   L.marker([n.lat, n.lon], {icon:ICO.nuit}).on('click', () => ouvrirOnglet('dormir')).bindTooltip(n.nom).addTo(calques.nuit);
+  (n.parkings||[]).forEach(pk => {
+    if (pk.chemin) L.polyline(pk.chemin, {color:'#1f6f8b', weight:3, dashArray:'4 6'}).addTo(calques.nuit);
+    L.marker([pk.lat, pk.lon], {icon: pk.principal ? ICO.pk : ICO.pkb}).bindTooltip('🅿 ' + pk.nom).bindPopup(
+      `<b>🅿 ${esc(pk.nom)}</b><br>${esc(pk.type)}<br>${esc(pk.prix)}${pk.horaires ? '<br>' + esc(pk.horaires) : ''}<br>🚶 ${esc(pk.pied)}<br><a href="${lienPoint(pk.lat,pk.lon)}" target="_blank">Y aller à moto</a>`).addTo(calques.nuit);
+  });
   map.fitBounds(ligne.getBounds(), {padding:[24,24]});
 }
 function photoProche(ll){
@@ -159,7 +165,8 @@ function entete(){
 function gpx(){
   const pts = J.trace.map(p => `<trkpt lat="${p[0]}" lon="${p[1]}"></trkpt>`).join('');
   const wpts = J.stations.map(s => `<wpt lat="${s.lat}" lon="${s.lon}"><name>${esc(s.nom)} km${s.km}</name><sym>Gas Station</sym></wpt>`).join('')
-    + `<wpt lat="${J.nuit.lat}" lon="${J.nuit.lon}"><name>${esc(J.nuit.nom)}</name><sym>Lodging</sym></wpt>`;
+    + `<wpt lat="${J.nuit.lat}" lon="${J.nuit.lon}"><name>${esc(J.nuit.nom)}</name><sym>Lodging</sym></wpt>`
+    + (J.nuit.parkings||[]).map(pk => `<wpt lat="${pk.lat}" lon="${pk.lon}"><name>${esc('P ' + pk.nom)}</name><sym>Parking Area</sym></wpt>`).join('');
   const x = `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="roadtrip-maroc" xmlns="http://www.topografix.com/GPX/1/1">${wpts}<trk><name>J${J.num} ${esc(J.titre)}</name><trkseg>${pts}</trkseg></trk></gpx>`;
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([x], {type:'application/gpx+xml'}));
@@ -327,6 +334,8 @@ function vDormir(){
     <p><b>${esc(n.prix)}</b><br>Annulation : ${esc(n.annulation)}<br>Statut : <span class="badge ${/^réservé/.test(n.statut||'') ? 'ok' : 'warn'}">${esc(n.statut)}</span></p>
     ${n.arrivee_h ? `<p>🕑 Arrivée : <b>${esc(n.arrivee_h)}</b><br>🕚 Départ : <b>${esc(n.depart_h)}</b></p>` : ''}
     <p>${esc(n.astuce)}</p>
+    ${(n.parkings||[]).map(pk => `<div class="alerte" style="margin:8px 0"><b>🅿 ${esc(pk.nom)}</b>${pk.principal ? '' : ' <i>(plan B)</i>'}<br>${esc(pk.type)} · ${esc(pk.prix)}${pk.horaires ? '<br>⏰ ' + esc(pk.horaires) : ''}<br>🚶 ${esc(pk.pied)}<br><small>${esc(pk.statut)}</small>
+      <div class="mini-actions"><a class="btn clair" href="${lienPoint(pk.lat,pk.lon)}" target="_blank">🏍 Y aller à moto</a> <a class="btn clair" href="https://www.google.com/maps/dir/?api=1&travelmode=walking&origin=${pk.lat},${pk.lon}&destination=${n.lat},${n.lon}" target="_blank">🚶 Parking → hébergement</a></div></div>`).join('')}
     <div class="actions"><a class="btn" href="${n.booking}" target="_blank">📷 Photos et avis sur Booking</a></div>
     ${(n.photos||[]).length ? `<h3 style="margin-top:10px">Les abords</h3><div class="meta">Photos prises dans la rue autour de l'hébergement (Mapillary) pour repérer l'accès et le stationnement.</div>
       <div class="galerie">${n.photos.map((p, k) => `<img loading="lazy" src="${p.src}" data-g="nuit" data-i="${k}" alt="">`).join('')}</div>` : ''}
