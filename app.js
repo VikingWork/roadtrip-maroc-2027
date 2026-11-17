@@ -301,7 +301,18 @@ function vManger(){
       <div class="mini-actions"><a class="btn clair" href="${lienPoint(x.lat,x.lon)}" target="_blank">🧭 Y aller</a>
       <a class="btn clair" href="${x.maps || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.nom)}`}" target="_blank">Avis et photos Google</a></div></div>`; }).join('')).join('');
   setTimeout(rafraichirRestos, 0);
-  return html;
+  return vStreet() + html;
+}
+function vStreet(){
+  const s = J.street; if (!s) return '';
+  const li = t => (t||[]).map(x => `<li style="margin:4px 0">${esc(x)}</li>`).join('');
+  return `<div class="carte" style="border-left:4px solid #e07b00"><h3>🥙 Local et pas cher : ${esc(s.titre)}</h3>
+    <div class="meta">Street food, gargotes et snacks où mangent les Marocains. Prix 2025-2026, à prévoir un peu plus chers en 2027.</div>
+    <p>📍 ${esc(s.ou)}</p><ul style="margin:0 0 6px 18px;padding:0">${li(s.quoi)}</ul>
+    ${s.souk ? `<p>🧺 <b>Souk :</b> ${esc(s.souk)}</p>` : ''}
+    ${(s.plans||[]).length ? `<p><b>👍 Bons plans</b></p><ul style="margin:0 0 6px 18px;padding:0">${li(s.plans)}</ul>` : ''}
+    ${(s.pieges||[]).length ? `<p><b>⚠ Pièges</b></p><ul style="margin:0 0 6px 18px;padding:0">${li(s.pieges)}</ul>` : ''}
+    <div class="mini-actions"><button class="btn clair" onclick="ouvrirOnglet('savoir')">💶 Prix de référence, darija, arnaques</button></div></div>`;
 }
 async function rafraichirRestos(){
   if (!window.GKEY) return;

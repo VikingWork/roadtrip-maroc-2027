@@ -4,7 +4,8 @@
   "⚠ <b>Aïd el-Kébir 2027 : probablement le dimanche 16 mai</b> (calcul astronomique, date officielle annoncée 1 à 2 jours avant, peut glisser au 17). Notre retour du samedi 15 tombe donc la <b>veille</b> : autoroute chargée (départs en famille), marchés aux moutons partout, commerces et restos qui ferment plus tôt. On part tôt de Marrakech et on garde de la marge au port."
  ],
  "sections": [
-  {"titre": "🛃 Douane moto (entrée et sortie)",
+  {
+   "titre": "🛃 Douane moto (entrée et sortie)",
    "points": [
     "À avoir sur soi : passeport, carte grise ORIGINALE (procuration légalisée si elle n'est pas à votre nom : pour la KTM en crédit, vérifier le titulaire), carte verte avec le Maroc (« MA ») non barré. Sinon, assurance frontière vendue au guichet du port.",
     "Pas de formulaire papier à remplir pour la moto depuis 2019 (l'ancien D16 ter est supprimé) : le douanier saisit l'importation temporaire dans son système et remet un document d'admission temporaire. Le garder avec la carte grise jusqu'à la sortie. Aucune pré-déclaration en ligne trouvée pour les touristes.",
@@ -12,8 +13,14 @@
     "À la sortie (Tanger Med), la sortie de la moto doit être enregistrée : présenter le document d'admission temporaire. Compter 1 à 2 h de formalités ; les motos passent souvent devant les voitures.",
     "Au port, ne confier ses papiers qu'aux agents en uniforme, jamais aux « aides » qui proposent de faire les formalités."
    ],
-   "sources": ["https://www.horizonsunlimited.com/hubb/morocco/morocco-entry-procedure-63507-print", "https://www.bladi.net/maroc-mre-savoir-venir-voiture,121114.html", "https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/maroc/"]},
-  {"titre": "💶 Argent",
+   "sources": [
+    "https://www.horizonsunlimited.com/hubb/morocco/morocco-entry-procedure-63507-print",
+    "https://www.bladi.net/maroc-mre-savoir-venir-voiture,121114.html",
+    "https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/maroc/"
+   ]
+  },
+  {
+   "titre": "💶 Argent",
    "points": [
     "Le dirham ne s'exporte pas (petite somme tolérée seulement). Change au port de Tanger Med (bureaux de change + distributeur) ou en ville ; garder les bordereaux de change pour reconvertir à la sortie.",
     "Distributeurs dans toutes les villes ; carte acceptée dans les hôtels et certains restos, mais essence, parkings, petits restos et souks = liquide. Avoir toujours de la petite monnaie (pièces de 10 DH, billets de 20).",
@@ -21,14 +28,22 @@
     "Pourboires usuels : gardien de parking 5-10 DH (plus si la nuit), 10 % au resto, guide officiel 50-100 DH en plus du tarif, gardien de kasbah 10-20 DH.",
     "Marchandage normal dans les souks : commencer vers le tiers du prix annoncé, rester souriant, savoir partir."
    ],
-   "sources": ["https://www.bladi.net/douane-marocaine-faut-savoir-importation-devises,118887.html"]},
-  {"titre": "📱 Téléphone et internet",
+   "sources": [
+    "https://www.bladi.net/douane-marocaine-faut-savoir-importation-devises,118887.html"
+   ]
+  },
+  {
+   "titre": "📱 Téléphone et internet",
    "points": [
     "Notre forfait Sosh Voyage et l'eSIM sont déjà prévus. Plan B : SIM locale Maroc Telecom (20 DH, puis 10 Go ≈ 100 DH), Orange (10 Go ≈ 100 DH) ou Inwi (10 Go ≈ 99 DH), passeport demandé. eSIM possible chez Orange et Maroc Telecom.",
     "Réseau 4G correct sur les grands axes ; trous dans l'Ounila, le haut des gorges du Dadès et certains plateaux : télécharger les cartes hors ligne (Google Maps / OsmAnd) avant."
    ],
-   "sources": ["https://www.zetsim.com/blogs/news/morocco-sim-card-guide-2026-esim-prices-where-to-buy"]},
-  {"titre": "🚓 Code de la route et police",
+   "sources": [
+    "https://www.zetsim.com/blogs/news/morocco-sim-card-guide-2026-esim-prices-where-to-buy"
+   ]
+  },
+  {
+   "titre": "🚓 Code de la route et police",
    "points": [
     "Limites : 60 km/h en ville (souvent 40 signalé), 100 sur route, 120 sur autoroute. Radars fixes et mobiles très nombreux, gendarmes à l'entrée des villages.",
     "Les amendes se paient sur place contre reçu. Ne jamais proposer d'argent : la corruption est de plus en plus sanctionnée.",
@@ -36,24 +51,35 @@
     "Éviter de rouler de nuit : piétons, ânes, charrettes et voitures sans feux.",
     "Ronds-points : la priorité varie, souvent à celui qui est déjà dans l'anneau ; regarder et anticiper plutôt que compter sur la règle."
    ],
-   "sources": ["https://www.lerepairedesmotards.com/voyages/maroc/code-de-la-route.php", "https://www.lerepairedesmotards.com/actualites/2013/actu_130906-autoroutes-marocaines-rejet-demande-tarif-motos.php"]},
-  {"titre": "🚫 Interdits",
+   "sources": [
+    "https://www.lerepairedesmotards.com/voyages/maroc/code-de-la-route.php",
+    "https://www.lerepairedesmotards.com/actualites/2013/actu_130906-autoroutes-marocaines-rejet-demande-tarif-motos.php"
+   ]
+  },
+  {
+   "titre": "🚫 Interdits",
    "points": [
     "Drone : interdit d'entrée sans autorisation, saisi à la douane et amende possible. On le laisse à la maison.",
     "Ne pas photographier militaires, policiers, postes de contrôle, palais royaux et bâtiments officiels.",
     "Demander avant de photographier quelqu'un ; beaucoup refusent, d'autres demandent quelques dirhams.",
     "Drogue (le kif proposé dans le Rif) : sévèrement puni."
    ],
-   "sources": ["https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/maroc/"]},
-  {"titre": "🩺 Sécurité, santé, essence",
+   "sources": [
+    "https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/maroc/"
+   ]
+  },
+  {
+   "titre": "🩺 Sécurité, santé, essence",
    "points": [
     "Eau en bouteille uniquement, éviter les crudités les premiers jours. Trousse : anti-diarrhéique, réhydratation.",
     "Vols à l'arraché surtout à Marrakech et Casablanca : téléphone et portefeuille dans une poche fermée, rien sur la moto à l'arrêt.",
     "Chiens errants, surtout la nuit dans les villages.",
     "Essence sans plomb disponible partout sur le goudron ; faire le plein dès qu'on passe sous la moitié dans le sud. Paiement en liquide le plus sûr.",
     "Assistance santé : carte Gold (numéro au dos), appeler AVANT toute dépense. Moto : assistance de l'assurance moto."
-   ]},
-  {"titre": "📅 Calendrier",
+   ]
+  },
+  {
+   "titre": "📅 Calendrier",
    "points": [
     "Ramadan 2027 : environ du 8 février au 9 mars. Fini bien avant notre voyage.",
     "Aïd el-Kébir : probablement le 16 mai 2027 (voir l'alerte en haut).",
@@ -61,11 +87,291 @@
     "Le vendredi (7 et 14 mai) : grande prière vers 13h, boutiques fermées autour, médersa Bou Inania fermée à Fès ; couscous dans tous les restos.",
     "Souk de Kelaat M'Gouna le mercredi : c'est notre jour de passage."
    ],
-   "sources": ["https://islamic.app/hijri/eid-al-adha/2027", "https://en.expresstv.ma/?p=14366", "https://visitdraatafilalet.com/en/activities/stroll-in-draa-tafilalets-souks"]},
-  {"titre": "🗣 Darija de survie",
-   "points": ["Prononciation à la française. Le français est compris presque partout dans les villes."],
-   "tableau": [["Bonjour", "salam"], ["Merci", "choukrane"], ["Non merci", "la, choukrane"], ["S'il vous plaît", "afak"], ["Combien ?", "chhal ?"],
-               ["L'addition", "l-hsab, afak"], ["Essence", "l-benzine"], ["De l'eau", "lma"], ["Doucement", "bchouiya"], ["Oui", "iyeh"]],
-   "sources": ["https://generationvoyage.fr/parler-darija-maroc/"]}
+   "sources": [
+    "https://islamic.app/hijri/eid-al-adha/2027",
+    "https://en.expresstv.ma/?p=14366",
+    "https://visitdraatafilalet.com/en/activities/stroll-in-draa-tafilalets-souks"
+   ]
+  },
+  {
+   "titre": "🗣 Darija de survie",
+   "points": [
+    "Prononciation à la française. Le français est compris presque partout dans les villes."
+   ],
+   "tableau": [
+    [
+     "Bonjour",
+     "salam"
+    ],
+    [
+     "Merci",
+     "choukrane"
+    ],
+    [
+     "Non merci",
+     "la, choukrane"
+    ],
+    [
+     "S'il vous plaît",
+     "afak"
+    ],
+    [
+     "Combien ?",
+     "chhal ?"
+    ],
+    [
+     "L'addition",
+     "l-hsab, afak"
+    ],
+    [
+     "Essence",
+     "l-benzine"
+    ],
+    [
+     "De l'eau",
+     "lma"
+    ],
+    [
+     "Doucement",
+     "bchouiya"
+    ],
+    [
+     "Oui",
+     "iyeh"
+    ]
+   ],
+   "sources": [
+    "https://generationvoyage.fr/parler-darija-maroc/"
+   ]
+  },
+  {
+   "titre": "🥙 Street food : prix de référence (2025-2026)",
+   "points": [
+    "Règle d'or : s'éloigner de 5 à 10 minutes des portes et places touristiques (Bab Boujloud, Outa el-Hammam, Jemaa el-Fna) et demander le prix AVANT de commander.",
+    "Au-delà de 2 à 3 fois ces prix, c'est un prix « touriste ». Viande : prévoir un peu plus cher en 2027 (forte hausse ces dernières années).",
+    "Liquide en petites coupures (pièces de 1 à 10 DH, billets de 20) : les stands ne prennent pas la carte, et ça évite le « pas de monnaie ». 10 DH ≈ 0,92 €."
+   ],
+   "tableau": [
+    [
+     "Produit",
+     "Prix local",
+     "Alerte « touriste »"
+    ],
+    [
+     "Msemen nature",
+     "3–5 DH",
+     "> 10 DH"
+    ],
+    [
+     "Msemen farci",
+     "8–15 DH",
+     "> 25 DH"
+    ],
+    [
+     "Harira",
+     "5–10 DH",
+     "15–25 DH"
+    ],
+    [
+     "Bissara + pain",
+     "5–15 DH",
+     "> 20 DH"
+    ],
+    [
+     "Sfenj (beignet)",
+     "1–3 DH pièce",
+     "> 5 DH"
+    ],
+    [
+     "Baghrir au miel",
+     "5–10 DH",
+     "> 15 DH"
+    ],
+    [
+     "3-4 brochettes",
+     "25–35 DH",
+     "30–45 DH LA brochette"
+    ],
+    [
+     "Sandwich kefta / merguez",
+     "10–25 DH",
+     "> 35 DH"
+    ],
+    [
+     "Tajine en gargote",
+     "30–50 DH",
+     "80–120 DH"
+    ],
+    [
+     "Couscous du vendredi",
+     "30–40 DH",
+     "> 80 DH"
+    ],
+    [
+     "Madfouna (2-3 pers.)",
+     "60–120 DH",
+     "—"
+    ],
+    [
+     "Méchoui (kg)",
+     "170–260 DH",
+     "> 260 DH ou prix pas fixé avant la découpe"
+    ],
+    [
+     "Poisson grillé (assiette)",
+     "80–150 DH",
+     "> 200 DH"
+    ],
+    [
+     "Thé à la menthe",
+     "5–10 DH",
+     "15–25 DH"
+    ],
+    [
+     "Café noir / nous-nous",
+     "8–12 / 10–15 DH",
+     "> 20 DH"
+    ],
+    [
+     "Jus d'orange",
+     "4–10 DH",
+     "> 15 DH"
+    ],
+    [
+     "Pain (khobz)",
+     "2–5 DH",
+     "facturé sans être demandé"
+    ],
+    [
+     "Kefta au boucher-grilleur (kg)",
+     "non trouvé : demander",
+     "—"
+    ]
+   ],
+   "sources": [
+    "https://www.marrakech-cityguide.com/fr/ou-manger/street-food",
+    "https://heerby.ma/en/blog/average-meal-price-fes",
+    "https://flyingtajine.com/fes-street-food-guide-what-where-to-eat/",
+    "https://www.gomarrakechdeserttrips.com/madfouna-filalia-traditional-dish-of-southeast-morocco/",
+    "https://www.tripadvisor.com/Restaurant_Review-g293734-d3185354-Reviews-or45-Mechoui_Alley-Marrakech_Marrakech_Safi.html"
+   ]
+  },
+  {
+   "titre": "🔎 Reconnaître une vraie gargote",
+   "points": [
+    "Bon signe : travailleurs, chauffeurs, familles marocaines ; tables en plastique, néons, pas d'enseigne en anglais ; une ou deux spécialités seulement ; file d'attente le matin ; viande pesée devant vous ; prix en dirhams sur un tableau au mur.",
+    "Mauvais signe : rabatteur dans la rue ; menu plastifié en quatre langues avec photos ; macarons TripAdvisor / Google sur la façade ; collé à une porte ou une place célèbre ; « menu réduction » proposé à l'oral ; aucun prix affiché."
+   ],
+   "sources": [
+    "https://artandthensome.com/where-to-eat-in-fez/"
+   ]
+  },
+  {
+   "titre": "🧼 Street food sans tomber malade",
+   "points": [
+    "Choisir les stands où il y a du monde : la nourriture ne stagne pas.",
+    "Manger cuit et chaud : grillades sorties du feu, soupes bouillantes, beignets frits à la commande.",
+    "Viande hachée : la faire hacher devant soi ; « rester près du boucher et très près du cuisto ».",
+    "Pas de crudités lavées à l'eau du robinet, surtout les premiers jours.",
+    "Jus d'orange pressé devant soi uniquement (le jus déjà prêt est parfois coupé d'eau).",
+    "Eau en bouteille capsulée ; gel pour les mains avant de manger avec le pain."
+   ],
+   "sources": [
+    "https://www.yabiladi.com/forum/kefta-poisson-grille-46-1203869-page=3.html",
+    "https://www.lonelyplanet.com/articles/what-to-eat-and-drink-in-morocco"
+   ]
+  },
+  {
+   "titre": "🗣 Darija pour manger",
+   "points": [],
+   "tableau": [
+    [
+     "Salam alikoum",
+     "Bonjour"
+    ],
+    [
+     "Bch-hal hada ?",
+     "Combien c'est ?"
+    ],
+    [
+     "Bch-hal l'kilo ?",
+     "Combien le kilo ?"
+    ],
+    [
+     "Bghit wahed… / jouj…",
+     "Je veux un… / deux…"
+    ],
+    [
+     "Ghali bezzaf !",
+     "C'est trop cher !"
+    ],
+    [
+     "Nqass chwiya ?",
+     "Vous baissez un peu ?"
+    ],
+    [
+     "La, choukran",
+     "Non merci (pain, olives, salades)"
+    ],
+    [
+     "Ma tlebtch hada",
+     "Je n'ai pas commandé ça"
+    ],
+    [
+     "M'aah l'menu ?",
+     "C'est compris dans le menu ?"
+    ],
+    [
+     "Bla sokkar / chwiya d sokkar",
+     "Sans sucre / peu de sucre"
+    ],
+    [
+     "L'hsab, afak",
+     "L'addition, s'il vous plaît"
+    ]
+   ]
+  },
+  {
+   "titre": "⚠ Arnaques à table",
+   "points": [],
+   "tableau": [
+    [
+     "Arnaque",
+     "Parade"
+    ],
+    [
+     "Pain, olives, salades « offerts » puis facturés",
+     "« La, choukran » dès que l'assiette arrive, la repousser"
+    ],
+    [
+     "Addition gonflée (110 → 200 DH à Jemaa el-Fna)",
+     "Prix de chaque plat avant de s'asseoir, photo du menu, vérifier ligne à ligne"
+    ],
+    [
+     "Méchoui au poids gonflé, mauvais morceaux",
+     "Prix au kilo fixé avant la découpe, 250 g par personne, désigner le morceau"
+    ],
+    [
+     "Jus coupé d'eau, gobelet en plus, prix dit en darija",
+     "Pressé devant soi, faire répéter le prix en dirhams"
+    ],
+    [
+     "Menu sans prix, prix « à la tête du client »",
+     "« Bch-hal ? » avant de commander, quitte à partir"
+    ],
+    [
+     "Extra « inclus » qui ne l'est pas",
+     "« M'aah l'menu ? »"
+    ],
+    [
+     "Boucher qui pèse ou sert autre chose",
+     "Regarder la pesée, montrer la pièce du doigt"
+    ]
+   ],
+   "sources": [
+    "https://routard.com/forum_message/2298913/tarif_repas_place_jemaa_el_fna.htm",
+    "https://www.petitfute.co.uk/v48159-marrakech/c1165-restaurants/c1031-cuisines-du-monde/356466-gargotes-de-la-place-jemaa-el-fna.html"
+   ]
+  }
  ]
 }
